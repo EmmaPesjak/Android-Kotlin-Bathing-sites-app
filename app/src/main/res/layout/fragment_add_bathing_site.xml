@@ -1,14 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".AddBathingSiteFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
 
-</FrameLayout>
+    <EditText
+        android:id="@+id/name"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Name: "
+        android:inputType="text"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <EditText
+        android:id="@+id/description"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Description: "
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/name"/>
+    <EditText
+        android:id="@+id/address"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Address: "
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/description"/>
+    <EditText
+        android:id="@+id/longitude"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Longitude: "
+        android:inputType="numberDecimal"
+        app:layout_constraintTop_toBottomOf="@id/address"/>
+    <EditText
+        android:id="@+id/latitude"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Latitude: "
+        android:inputType="numberDecimal"
+        app:layout_constraintTop_toBottomOf="@id/longitude"/>
+    <EditText
+        android:id="@+id/grade"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Grade: "
+        android:inputType="number"
+        app:layout_constraintTop_toBottomOf="@id/latitude"/>
+    <EditText
+        android:id="@+id/water_temp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:hint="Water temperature: "
+        android:inputType="numberDecimal"
+        app:layout_constraintTop_toBottomOf="@id/grade"/>
+
+    <EditText
+        android:id="@+id/date_water"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Date water temperature: "
+        android:inputType="date"
+        app:layout_constraintTop_toBottomOf="@id/water_temp"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

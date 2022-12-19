@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="@string/clear"
+        android:id="@+id/add_clear"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:title="@string/save"
+        android:id="@+id/add_save"
+        app:showAsAction="ifRoom"
+
+        />
+
+    <item
+        android:title="@string/show_weather"
+        android:id="@+id/add_show_weather"
+
+        />
+
+    <item
+        android:title="@string/settings"
+        android:id="@+id/add_settings"
+
+        />
+</menu>
