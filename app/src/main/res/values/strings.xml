@@ -11,4 +11,18 @@
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="show_weather">Show Weather</string>
+    <string name="required_name">Name is required.</string>
+    <string name="required_place">Address and/or coordinates are required</string>
+
+    <string name="name">Name: </string>
+    <string name="description">Description: </string>
+    <string name="address">Address: </string>
+    <string name="longitude">Longitude: </string>
+    <string name="latitude">Latitude: </string>
+    <string name="grade">Grade: </string>
+    <string name="water_temp">Water temp: </string>
+    <string name="date_water">Date for temp: </string>
+    <string name="ok">OK</string>
+
+
 </resources>

@@ -1,69 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".AddBathingSiteFragment">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toTopOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:context=".AddBathingSiteFragment">
+
+        <TextView
+            android:id="@+id/text_name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="@string/name" />
+
+        <EditText
+            android:id="@+id/name"
+            android:layout_width="415dp"
+            android:layout_height="match_parent"
+            android:inputType="text"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_name" />
+
+        <TextView
+            android:id="@+id/text_description"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/name"
+            android:text="@string/description" />
+        <EditText
+            android:id="@+id/description"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="text"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_description"/>
+
+        <TextView
+            android:id="@+id/text_address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/description"
+            android:text="@string/address" />
+        <EditText
+            android:id="@+id/address"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="text"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_address"/>
+
+        <TextView
+            android:id="@+id/text_longitude"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/address"
+            android:text="@string/longitude" />
+        <EditText
+            android:id="@+id/longitude"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_longitude"/>
+
+        <TextView
+            android:id="@+id/text_latitude"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/longitude"
+            android:text="@string/latitude" />
+        <EditText
+            android:id="@+id/latitude"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_latitude"/>
 
 
-    <EditText
-        android:id="@+id/name"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Name: "
-        android:inputType="text"
-        app:layout_constraintTop_toTopOf="parent"/>
-    <EditText
-        android:id="@+id/description"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Description: "
-        android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/name"/>
-    <EditText
-        android:id="@+id/address"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Address: "
-        android:inputType="text"
-        app:layout_constraintTop_toBottomOf="@id/description"/>
-    <EditText
-        android:id="@+id/longitude"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Longitude: "
-        android:inputType="numberDecimal"
-        app:layout_constraintTop_toBottomOf="@id/address"/>
-    <EditText
-        android:id="@+id/latitude"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Latitude: "
-        android:inputType="numberDecimal"
-        app:layout_constraintTop_toBottomOf="@id/longitude"/>
-    <EditText
-        android:id="@+id/grade"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Grade: "
-        android:inputType="number"
-        app:layout_constraintTop_toBottomOf="@id/latitude"/>
-    <EditText
-        android:id="@+id/water_temp"
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:hint="Water temperature: "
-        android:inputType="numberDecimal"
-        app:layout_constraintTop_toBottomOf="@id/grade"/>
+        <TextView
+            android:id="@+id/text_rating"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/latitude"
+            android:text="@string/grade" />
+        <RatingBar
+            android:id="@+id/rating_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:numStars="5"
+            android:stepSize="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_rating" />
 
-    <EditText
-        android:id="@+id/date_water"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Date water temperature: "
-        android:inputType="date"
-        app:layout_constraintTop_toBottomOf="@id/water_temp"/>
+        <TextView
+            android:id="@+id/text_water_temp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/rating_bar"
+            android:text="@string/water_temp" />
+        <EditText
+            android:id="@+id/water_temp"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="numberDecimal"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_water_temp"/>
+
+        <TextView
+            android:id="@+id/text_date_water"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintTop_toBottomOf="@id/water_temp"
+            android:text="@string/date_water" />
+        <EditText
+            android:id="@+id/date_water"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="date"
+            android:minHeight="48dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_date_water" />
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
