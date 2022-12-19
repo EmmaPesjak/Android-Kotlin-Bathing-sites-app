@@ -28,6 +28,11 @@ class BathingSitesView(
                 attributes.recycle()
             }
         }
+
+        val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
+        nmb.text = count.toString()
+        invalidate()
+        requestLayout()
     }
 
     // ingen aning om detta blir bra
@@ -52,6 +57,9 @@ class BathingSitesView(
     //kan man ha något save instance state här?
     //Eller ska allt detta vara i fragmentet???  nej instansvariablen ska vara här?
     // göra den till någon sorts util?
+
+
+    // blir 0 igen om jag flippar skärmen men klickar man igen så fortsätter den från där den var...
 
 
 
