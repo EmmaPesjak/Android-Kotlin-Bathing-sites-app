@@ -9,20 +9,26 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
+/**
+ * Main activity for the application.
+ */
 class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Set click listener on the floating action button.
         val fab = findViewById<View>(R.id.fab)
         fab.setOnClickListener { view ->
             startActivity(Intent(this, AddBathingSiteActivity::class.java))
         }
     }
 
-    //https://stackoverflow.com/questions/3264610/findviewbyid-returns-null
-    //blev null när jag körde det i onCreate()
+    /**
+     * Set a click listener on the BathingSiteView. (Got null when set in onCreate()).
+     * https://stackoverflow.com/questions/3264610/findviewbyid-returns-null
+     */
     override fun onStart() {
         super.onStart()
         val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
@@ -31,18 +37,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Inflate the overflow menu.
+    /**
+     * Inflate the overflow menu.
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
         return true
     }
 
-    // Start the settings activity when it is selected.
+    /**
+     * Set option responses.
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.main_settings -> {
                 //startActivity(Intent(this, SettingsActivity::class.java))
-                Toast.makeText(this, "Hej settings", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.settings, Toast.LENGTH_SHORT).show()
             }
 //            R.id.dial_download -> {
 //                startActivity(Intent(this, DownloadActivity::class.java))

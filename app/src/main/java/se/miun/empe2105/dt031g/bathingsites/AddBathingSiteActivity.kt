@@ -12,24 +12,31 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 
+/**
+ * Activity class for adding a new site.
+ */
 class AddBathingSiteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_bathing_site)
     }
 
-    // Inflate the overflow menu.
+    /**
+     * Inflate the overflow menu.
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.add_menu, menu)
         return true
     }
 
-    // Start the settings activity when it is selected.
+    /**
+     * Set option responses.
+     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.add_settings -> {
                 //startActivity(Intent(this, SettingsActivity::class.java))
-                Toast.makeText(this, "Hej settings", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.settings, Toast.LENGTH_SHORT).show()
             }
             R.id.add_clear -> {
                 clearFields()
@@ -38,14 +45,14 @@ class AddBathingSiteActivity : AppCompatActivity() {
                 saveSite()
             }
             R.id.add_show_weather -> {
-                Toast.makeText(this, "Hej väder", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.weather, Toast.LENGTH_SHORT).show()
             }
         }
         return super.onOptionsItemSelected(item)
     }
 
     /**
-     *
+     * Method for clearing the input fields.
      */
     private fun clearFields() {
         findViewById<EditText>(R.id.name).text.clear()
@@ -55,13 +62,14 @@ class AddBathingSiteActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.latitude).text.clear()
         findViewById<RatingBar>(R.id.rating_bar).rating = 0F
         findViewById<EditText>(R.id.water_temp).text.clear()
-        findViewById<EditText>(R.id.date_water).text.clear()
 
+        // Reset the date.
         setDate()
     }
 
     /**
-     *
+     * Method for saving the bathing site, checks mandatory inputs and
+     * displays the site in an alert dialog.
      */
     private fun saveSite() {
 
@@ -70,9 +78,9 @@ class AddBathingSiteActivity : AppCompatActivity() {
         val longitude = findViewById<EditText>(R.id.longitude)
         val latitude = findViewById<EditText>(R.id.latitude)
 
-        val alertDialog = createMessageAndGetDialog()
+        val alertDialog = createMessageAndGetDialog(name, address, longitude, latitude)
 
-        // Check if the mandatory fields are filled in
+        // Check if the mandatory fields are filled in.
         if (name.text.isNotEmpty() && address.text.isNotEmpty()) {
             longitude.error = null
             latitude.error = null
@@ -101,14 +109,11 @@ class AddBathingSiteActivity : AppCompatActivity() {
     }
 
     /**
-     *
+     * Method for creating the alert dialog.
      */
-    private fun createMessageAndGetDialog() : AlertDialog {
-        val name = findViewById<EditText>(R.id.name)
-        val address = findViewById<EditText>(R.id.address)
-        val longitude = findViewById<EditText>(R.id.longitude)
-        val latitude = findViewById<EditText>(R.id.latitude)
+    private fun createMessageAndGetDialog(name : EditText, address: EditText, longitude: EditText, latitude:EditText) : AlertDialog {
 
+        // Create the text
         val dialogText = getString(R.string.name) + name.text + "\n" + getString(
             R.string.description) + findViewById<EditText>(R.id.description).text + "\n" + getString(
             R.string.address) + address.text + "\n" + getString(
@@ -118,6 +123,7 @@ class AddBathingSiteActivity : AppCompatActivity() {
             R.string.water_temp) + findViewById<EditText>(R.id.water_temp).text + "\n" + getString(
             R.string.date_water) + findViewById<EditText>(R.id.date_water).text
 
+        // Create the alert dialog.
         val builder = AlertDialog.Builder(this)
         builder.setMessage(dialogText)
         builder.setNegativeButton(R.string.ok) { dialog, _ ->
@@ -125,16 +131,13 @@ class AddBathingSiteActivity : AppCompatActivity() {
         }
         val alertDialog: AlertDialog = builder.create()
         alertDialog.setCancelable(false)
-
         return alertDialog
     }
 
     /**
-     *
+     * Method for setting the default date to today's date.
      */
     private fun setDate() {
-
-        //detta behöver ju snyggas upp
         // https://stackoverflow.com/questions/8654990/how-can-i-get-current-date-in-android
         // https://stackoverflow.com/questions/54840729/error29-34-type-mismatch-inferred-type-is-string-but-editable-was-expecte
 

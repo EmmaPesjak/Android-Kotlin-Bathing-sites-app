@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment
 import java.util.*
 
 /**
- * A simple [Fragment] subclass.
+ * A simple fragment.
  */
 class AddBathingSiteFragment : Fragment() {
 
@@ -23,6 +23,9 @@ class AddBathingSiteFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_add_bathing_site, container, false)
     }
 
+    /**
+     * Set the default date to today's date.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //https://stackoverflow.com/questions/6495898/findviewbyid-in-fragment
         val dateWater: EditText = requireView().findViewById<View>(R.id.date_water) as EditText
