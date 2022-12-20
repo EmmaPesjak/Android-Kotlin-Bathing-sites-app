@@ -1,5 +1,6 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
@@ -7,6 +8,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import kotlinx.coroutines.*
@@ -74,13 +77,11 @@ class WeatherFragment : DialogFragment() {
 //                }
 //            }
 
-            println(weatherIsDownloaded)
+            // glöm inte permissions
 
             weatherIsDownloaded = true
-            //Thread.sleep(5000)
-            println("kommer jag hit`?")
 
-            println(weatherIsDownloaded)
+
 
             return AlertDialog.Builder(activity)
                 .setMessage(R.string.getting_current_weather)
@@ -99,7 +100,31 @@ class WeatherFragment : DialogFragment() {
     }
 
 
-    private fun getWeatherDialog() : Dialog {
+    private lateinit var isdialog : AlertDialog
+    fun hejDialog(activity: Activity) {
+
+        val inflater = activity.layoutInflater
+
+        val dialogView = inflater.inflate(R.layout.fragment_weather, null)
+        val builder = AlertDialog.Builder(activity)
+
+        builder.setView(dialogView)
+        isdialog = builder.create()
+        isdialog.show()
+    }
+    fun isDismiss() {
+        isdialog.dismiss()
+    }
+    fun hejHopp(activity: Activity) {
+        val builder = AlertDialog.Builder(activity)
+            .setTitle(R.string.current_weather)
+            .setNegativeButton(R.string.ok
+            ) { dialog, _ -> dialog.dismiss() }
+            .create()
+    }
+
+
+    fun getWeatherDialog() : Dialog {
         return AlertDialog.Builder(activity)
             .setTitle(R.string.current_weather)
             .setNegativeButton(R.string.ok

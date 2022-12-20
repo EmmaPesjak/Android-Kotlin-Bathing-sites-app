@@ -3,6 +3,7 @@ package se.miun.empe2105.dt031g.bathingsites
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.os.Handler
 import android.text.Editable
 import android.view.Menu
 import android.view.MenuItem
@@ -11,6 +12,7 @@ import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.delay
 import java.util.*
 
 /**
@@ -46,7 +48,14 @@ class AddBathingSiteActivity : AppCompatActivity() {
             }
             R.id.add_show_weather -> {
                 val dialog = WeatherFragment()
-                dialog.show(supportFragmentManager, "weatherDialog")
+                //dialog.show(supportFragmentManager, "weatherDialog")
+
+                dialog.hejDialog(this)
+//                Thread.sleep(2000)
+//                dialog.isDismiss()
+//                Thread.sleep(1000)
+
+
             }
         }
         return super.onOptionsItemSelected(item)
