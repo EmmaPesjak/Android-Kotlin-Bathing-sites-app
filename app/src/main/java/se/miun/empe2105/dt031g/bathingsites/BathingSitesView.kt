@@ -1,22 +1,28 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Resources
 import android.util.AttributeSet
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 
+
+@SuppressLint("SetTextI18n")
 class BathingSitesView(
     context: Context, attrs: AttributeSet?
 ) : ConstraintLayout(context, attrs) {
 
 
-    var count = 0
-
-    //instansvariabel fär antal sites?
+    // gör den static
+    // https://stackoverflow.com/questions/57788508/static-variables-in-kotlin
+    // https://stackoverflow.com/questions/24464663/why-is-my-counter-being-reset-each-time-after-call-tooncreate/24464738#24464738
+    companion object {
+        var count = 0
+    }
 
     init {
         inflate(context, R.layout.bathing_site_view, this)
-
 
         // Set styleable attributes.
         attrs?.let { attributeSet ->
@@ -29,38 +35,20 @@ class BathingSitesView(
             }
         }
 
+        val hej = resources.getString(R.string.counter_text)
         val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
-        nmb.text = count.toString()
+        nmb.text = "$count $hej"
         invalidate()
         requestLayout()
     }
-
-    // ingen aning om detta blir bra
-    fun setNmb(number: Number) {
+    
+    fun increaseCount() {
+        count += 1
         val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
-        nmb.text = number.toString()
+        val hej = resources.getString(R.string.counter_text)
+        val textHej = "$count $hej"
+        nmb.text = textHej
         invalidate()
         requestLayout()
     }
-
-    companion object {
-
-        var count = 0
-
-        fun increaseSites(): Int {
-            count += 1
-
-            return count
-        }
-    }
-
-    //kan man ha något save instance state här?
-    //Eller ska allt detta vara i fragmentet???  nej instansvariablen ska vara här?
-    // göra den till någon sorts util?
-
-
-    // blir 0 igen om jag flippar skärmen men klickar man igen så fortsätter den från där den var...
-
-
-
 }

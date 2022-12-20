@@ -16,11 +16,6 @@ class AddBathingSiteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_bathing_site)
-
-
-        //Behöver få in datumet automatiskt men krashar bara
-
-
     }
 
     // Inflate the overflow menu.
@@ -49,6 +44,9 @@ class AddBathingSiteActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    /**
+     *
+     */
     private fun clearFields() {
         findViewById<EditText>(R.id.name).text.clear()
         findViewById<EditText>(R.id.description).text.clear()
@@ -62,6 +60,9 @@ class AddBathingSiteActivity : AppCompatActivity() {
         setDate()
     }
 
+    /**
+     *
+     */
     private fun saveSite() {
 
         val name = findViewById<EditText>(R.id.name)
@@ -99,6 +100,9 @@ class AddBathingSiteActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     *
+     */
     private fun createMessageAndGetDialog() : AlertDialog {
         val name = findViewById<EditText>(R.id.name)
         val address = findViewById<EditText>(R.id.address)
@@ -125,15 +129,18 @@ class AddBathingSiteActivity : AppCompatActivity() {
         return alertDialog
     }
 
+    /**
+     *
+     */
     private fun setDate() {
 
         //detta behöver ju snyggas upp
         // https://stackoverflow.com/questions/8654990/how-can-i-get-current-date-in-android
         // https://stackoverflow.com/questions/54840729/error29-34-type-mismatch-inferred-type-is-string-but-editable-was-expecte
 
-        val c = Calendar.getInstance().time
-        val df = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())  //notera att detta blir telefonens tidszon
-        val formattedDate = df.format(c)
+        val date = Calendar.getInstance().time
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())  //notera att detta blir telefonens tidszon
+        val formattedDate = dateFormat.format(date)
         val dateTemp = findViewById<EditText>(R.id.date_water)
         fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
         dateTemp.text = formattedDate.toEditable()

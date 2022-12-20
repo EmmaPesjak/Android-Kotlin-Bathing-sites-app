@@ -1,16 +1,16 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import se.miun.empe2105.dt031g.bathingsites.BathingSitesView.Companion.increaseSites
 
 class MainActivity : AppCompatActivity() {
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -19,22 +19,17 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener { view ->
             startActivity(Intent(this, AddBathingSiteActivity::class.java))
         }
-
-        // varför i hela friden ska denna vara klickbar och öka räknaren?
-        val bathingView = findViewById<View>(R.id.fragmentContainerView)
-        bathingView.setOnClickListener {
-
-            val newNmb = increaseSites()
-
-            val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
-            nmb.text = newNmb.toString()
-        }
-
-
     }
 
-
-
+    //https://stackoverflow.com/questions/3264610/findviewbyid-returns-null
+    //blev null när jag körde det i onCreate()
+    override fun onStart() {
+        super.onStart()
+        val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
+        bathingView.setOnClickListener {
+            bathingView.increaseCount()
+        }
+    }
 
     // Inflate the overflow menu.
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

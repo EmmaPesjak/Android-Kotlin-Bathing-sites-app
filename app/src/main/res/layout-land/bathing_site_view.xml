@@ -7,20 +7,20 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="374dp"
-        android:layout_height="441dp"
+        android:layout_width="230dp"
+        android:layout_height="234dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.486"
+        app:layout_constraintHorizontal_bias="0.499"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintVertical_bias="0.31"
         app:srcCompat="@drawable/bathingsites" />
 
     <TextView
         android:id="@+id/bathing_site_nmb"
-        android:layout_width="363dp"
-        android:layout_height="104dp"
+        android:layout_width="301dp"
+        android:layout_height="49dp"
         android:layout_marginTop="13dp"
         android:textAlignment="center"
         android:textSize="34sp"
