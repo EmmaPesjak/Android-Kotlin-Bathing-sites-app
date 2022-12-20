@@ -51,8 +51,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.main_settings -> {
-                //startActivity(Intent(this, SettingsActivity::class.java))
-                Toast.makeText(this, R.string.settings, Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, SettingsActivity::class.java))
             }
 //            R.id.dial_download -> {
 //                startActivity(Intent(this, DownloadActivity::class.java))

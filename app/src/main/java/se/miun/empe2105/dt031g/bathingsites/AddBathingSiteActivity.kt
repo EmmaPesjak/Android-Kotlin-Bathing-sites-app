@@ -1,5 +1,6 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.text.Editable
@@ -35,9 +36,8 @@ class AddBathingSiteActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.add_settings -> {
-                //startActivity(Intent(this, SettingsActivity::class.java))
-                Toast.makeText(this, R.string.settings, Toast.LENGTH_SHORT).show()
-            }
+                startActivity(Intent(this, SettingsActivity::class.java))
+                }
             R.id.add_clear -> {
                 clearFields()
             }
@@ -45,7 +45,8 @@ class AddBathingSiteActivity : AppCompatActivity() {
                 saveSite()
             }
             R.id.add_show_weather -> {
-                Toast.makeText(this, R.string.weather, Toast.LENGTH_SHORT).show()
+                val dialog = WeatherFragment()
+                dialog.show(supportFragmentManager, "weatherDialog")
             }
         }
         return super.onOptionsItemSelected(item)
