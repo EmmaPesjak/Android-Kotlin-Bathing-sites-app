@@ -10,8 +10,10 @@
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"
-        android:layout_width="63dp"
-        android:layout_height="66dp"
+        android:layout_width="61dp"
+        android:layout_height="57dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.204"
@@ -20,12 +22,13 @@
         app:layout_constraintVertical_bias="0.499" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/loadingTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/getting_current_weather"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/progressBar"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingRight="80dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

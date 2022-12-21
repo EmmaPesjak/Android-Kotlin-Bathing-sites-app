@@ -1,19 +1,19 @@
 package se.miun.empe2105.dt031g.bathingsites
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.os.Handler
 import android.text.Editable
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.RatingBar
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.delay
+import androidx.core.app.ActivityCompat
 import java.util.*
+import java.util.jar.Manifest
 
 /**
  * Activity class for adding a new site.
@@ -47,14 +47,27 @@ class AddBathingSiteActivity : AppCompatActivity() {
                 saveSite()
             }
             R.id.add_show_weather -> {
+
+                val address = findViewById<EditText>(R.id.address)
+                val longitude = findViewById<EditText>(R.id.longitude)
+                val latitude = findViewById<EditText>(R.id.latitude)
+
                 val dialog = WeatherFragment()
+
+                //kolla så vi har parametrar att söka väderdata på
+                if (latitude.text.isNotEmpty() && longitude.text.isNotEmpty()) {
+                    dialog.createDialog(this, "",
+                        Integer.parseInt(longitude.text.toString()),
+                        Integer.parseInt(latitude.text.toString()))
+                } else if (address.text.isNotEmpty()) {
+                    dialog.createDialog(this, address.text.toString())
+                } else {
+                    address.error = getString(R.string.required_place)
+                    longitude.error = getString(R.string.required_place)
+                    latitude.error = getString(R.string.required_place)
+                }
+
                 //dialog.show(supportFragmentManager, "weatherDialog")
-
-                dialog.hejDialog(this)
-//                Thread.sleep(2000)
-//                dialog.isDismiss()
-//                Thread.sleep(1000)
-
 
             }
         }
