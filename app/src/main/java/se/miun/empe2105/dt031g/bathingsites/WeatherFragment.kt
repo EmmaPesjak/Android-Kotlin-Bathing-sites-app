@@ -3,172 +3,165 @@ package se.miun.empe2105.dt031g.bathingsites
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
-import android.content.DialogInterface
+import android.content.Context
 import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import kotlinx.coroutines.*
 import org.json.JSONException
 import org.json.JSONObject
 import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
 /**
- * A simple [Fragment] subclass.
+ * Fragment for the weather dialog. Yes, the code is messy :)
  */
 class WeatherFragment : DialogFragment() {
 
-    //Denna behövs
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_weather, container, false)
-    }
+    private lateinit var weatherIcon : Drawable
+    private lateinit var temperature: String
+    private lateinit var weatherDescription: String
+    private lateinit var imageUrl: String
+    private lateinit var couldNotFind: String
+    private lateinit var celsius: String
+    private lateinit var png: String
 
-    //https://www.youtube.com/watch?v=GxET0CYy1eg
+    /**
+     * Function for searching for the weather using coordinates or address.
+     * Displays a progress dialog while fetching and a weather (or could not find)
+     * dialog when finished fetching. Since weather changes over time, values are not
+     * stored and the function always fetches the weather even if the user searches
+     * the same place twice or more times.
+     */
+    fun searchWeather(activity: Activity, address: String? = "", longitude: Int? = null, latitude: Int? = null) {
 
-    //https://stackoverflow.com/questions/18601049/adding-positive-negative-button-to-dialogfragments-dialog
+        val progressDialog = ProgressDialog(activity)
 
-    private lateinit var alertDialog : AlertDialog
-    private lateinit var progressDialog: ProgressDialog
+        // Get strings from the activity, these are used later.
+        couldNotFind = activity.resources.getString(R.string.could_not_find)
+        imageUrl = activity.resources.getString(R.string.image_url)
+        celsius = activity.resources.getString(R.string.celsius)
+        png = activity.resources.getString(R.string.png)
 
-
-    //ladda alltid ner nytt väder eftersom det kan ändras.
-    fun createDialog(activity: Activity, address: String? = "", longitude: Int? = null, latitude: Int? = null) {
-
-
-        //https://www.baeldung.com/kotlin/create-thread-pool
+        // Fetch the data with an executor service. https://www.baeldung.com/kotlin/create-thread-pool
         val service: ExecutorService = Executors.newSingleThreadExecutor()
-
         service.submit {
+            // Get the url from settings.
+            val preferences = activity.getSharedPreferences("fetch", Context.MODE_PRIVATE)
+            val url = preferences.getString("value", "")
 
-
-            //denna ska ju hämtas från settings och lägga till lat/long/adress
-            val url = "https://dt031g.programvaruteknik.nu/bathingsites/weather.php"
-
-
+            // In first hand, download with coordinates.
             if (longitude != null && latitude != null) {
-                println(latitude)
-                println(longitude)
-                //ladda ner med coordinater
-
-
-                //borde ha någon timeout här eller validering av mög
-                //behöver fixa ÅÄÖ
-
                 val completeUrl = "$url?lat=$latitude&lon=$longitude"
-                println(completeUrl)
                 getWeatherData(completeUrl)
-
-
             } else if (address != "") {
-                println(address)
-                // ladda ner med adress
-
-
+                // Otherwise download with the address.
                 val completeUrl = "$url?q=$address"
-                println(completeUrl)
                 getWeatherData(completeUrl)
-
-
-                // måste fixa något ifall staden/koordinaterna inte fungerar
-            } else {
-                println("Should never occur")
-                // måste få antingen adress eller coordinater så borde inte behöve göra mer här?
             }
-
-            //alertDialog.dismiss()
+            // Dismiss the progress dialog, this also triggers displaying the weather dialog.
             progressDialog.dismiss()
         }
 
+        // Show a progress dialog while fetching weather data.
         val message = activity.getString(R.string.getting_current_weather)
-
-        progressDialog = ProgressDialog(activity)
         progressDialog.setMessage(message)
         progressDialog.setCancelable(false)
+        // Set a listener for dismiss so that a weather dialog is shown.
         progressDialog.setOnDismissListener {
             showWeatherDialog(activity)
         }
         progressDialog.show()
-
-
-        //inflatea fragmentet med progressbaren
-//        val inflater = activity.layoutInflater
-//        val dialogView = inflater.inflate(R.layout.fragment_weather, null)
-//        val builder = AlertDialog.Builder(activity)
-//        builder.setView(dialogView)
-//        alertDialog = builder.create()
-//
-//        //https://medium.com/@stlin813/sequentially-show-multiple-dialogs-in-rxjava-5b57b2b9595b
-//        //sätt en listener så vädret kan visas sen
-//        alertDialog.setOnDismissListener(DialogInterface.OnDismissListener {
-//            showWeatherDialog(activity)
-//        })
-//
-//        //visa dialogen
-//        alertDialog.show()
-
     }
 
-
-    //https://stackoverflow.com/questions/44883593/how-to-read-json-from-url-using-kotlin-android
-    fun parseResponse(json: String): JSONObject? {
+    /**
+     * Function for parsing to JSON. Returns a [JSONObject].
+     * https://stackoverflow.com/questions/44883593/how-to-read-json-from-url-using-kotlin-android
+     */
+    private fun parseResponse(jsonString: String): JSONObject? {
         var jsonObject: JSONObject? = null
         try {
-            jsonObject = JSONObject(json)
+            jsonObject = JSONObject(jsonString)
         } catch (e: JSONException) {
             e.printStackTrace()
         }
         return jsonObject
     }
 
-    //använder inte inputstream här som i tipset
-    fun getWeatherData(url: String) {
+    /**
+     * Function for fetching the weather data and storing it in the variables.
+     */
+    private fun getWeatherData(url: String) {
+        // Read data and put in a string.
         val apiResponse = URL(url).readText()
-
+        // Parse to JSON
         val jsonObject = parseResponse(apiResponse)
+        // Get the status code.
+        val code = jsonObject?.getString("cod")
+        // Get the rest of the data if the code was 200.
+        if (code == "200") {
+            //https://johncodeos.com/how-to-parse-json-in-android-using-kotlin/
 
-        //https://johncodeos.com/how-to-parse-json-in-android-using-kotlin/
-        val weatherJsonArray = jsonObject?.getJSONArray("weather")
-        val icon = weatherJsonArray?.getJSONObject(0)?.getString("icon")
-        weatherDescription = weatherJsonArray?.getJSONObject(0)?.getString("description").toString()
-        val mainJsonObj = jsonObject?.getJSONObject("main")
-        temperature = mainJsonObj?.get("temp").toString()
+            // Get the description.
+            val weatherJsonArray = jsonObject.getJSONArray("weather")
+            weatherDescription = weatherJsonArray.getJSONObject(0)?.getString("description").toString()
 
+            // Get the temperature and round it down.
+            val mainJsonObj = jsonObject.getJSONObject("main")
+            val roundedTemp = mainJsonObj.get("temp").toString().toDouble().toInt()
+            temperature = roundedTemp.toString()
 
-        // IN MED DETTA I STRINGS ELLER NÅGOT
-        val imgUrl = "https://openweathermap.org/img/w/$icon.png"
-        val stream = URL(imgUrl).openStream()
-        val drawable = Drawable.createFromStream(stream, "src")
-        weatherIcon = drawable
+            // Get the drawable weather icon.
+            val icon = weatherJsonArray.getJSONObject(0)?.getString("icon")
+            val finishedImgUrl = imageUrl + icon + png
+            val stream = URL(finishedImgUrl).openStream()
+            val drawable = Drawable.createFromStream(stream, "src")
+            weatherIcon = drawable
+        } else { // Else set the description to could not find.
+            weatherDescription = couldNotFind
+        }
     }
 
-    lateinit var temperature: String  //avrunda?
-    lateinit var weatherDescription: String
-    private lateinit var weatherIcon : Drawable
 
+    /**
+     * Function for showing the weather dialog in the activity.
+     * https://stackoverflow.com/questions/18601049/adding-positive-negative-button-to-dialogfragments-dialog
+     * https://stackoverflow.com/questions/36699987/show-degree-symbol-in-a-textview
+     */
     private fun showWeatherDialog(activity: Activity) {
+        // Check if weather data was found.
+        if (weatherDescription != couldNotFind) {
 
-        //https://stackoverflow.com/questions/18601049/adding-positive-negative-button-to-dialogfragments-dialog
-        //https://stackoverflow.com/questions/36699987/show-degree-symbol-in-a-textview
+            // Inflate the fragment.
+            val alertDialog : AlertDialog
+            val inflater = activity.layoutInflater
+            val dialogView = inflater.inflate(R.layout.fragment_weather, null)
+            val builder = AlertDialog.Builder(activity)
+            builder.setView(dialogView)
 
+            val desc = dialogView.findViewById<TextView>(R.id.weather_description)
+            val temp = dialogView.findViewById<TextView>(R.id.weather_temp)
+            val icon = dialogView.findViewById<ImageView>(R.id.weather_icon)
 
-        //gör om xmlen och inflatea så det ser ordentligt ut
-
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.current_weather)
-            .setMessage("$weatherDescription \n$temperature\u2103") //hårdkoda inte? in i strings?
-            .setIcon(weatherIcon)
-            .setNegativeButton(R.string.ok
+            // Set title, button and data.
+            builder.setTitle(R.string.current_weather)
+            builder.setNegativeButton(R.string.ok
             ) { dialog, _ -> dialog.dismiss() }
-            .create().show()
+
+            desc.text = weatherDescription
+            val tempText = temperature + celsius
+            temp.text = tempText
+            icon.setImageDrawable(weatherIcon)
+
+            alertDialog = builder.create()
+            alertDialog.show()
+        } else { // If it was not found, display a dialog telling it.
+            AlertDialog.Builder(activity)
+                .setTitle(weatherDescription)
+                .setNegativeButton(R.string.ok
+                ) { dialog, _ -> dialog.dismiss() }
+                .show()
+        }
     }
 }

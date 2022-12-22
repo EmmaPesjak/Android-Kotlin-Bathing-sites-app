@@ -1,7 +1,6 @@
 package se.miun.empe2105.dt031g.bathingsites
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.text.Editable
@@ -11,9 +10,7 @@ import android.widget.EditText
 import android.widget.RatingBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import java.util.*
-import java.util.jar.Manifest
 
 /**
  * Activity class for adding a new site.
@@ -54,21 +51,22 @@ class AddBathingSiteActivity : AppCompatActivity() {
 
                 val dialog = WeatherFragment()
 
-                //kolla så vi har parametrar att söka väderdata på
+                // Check if the user has inputted coordinates and/or address to search with.
+                // Create a dialog and remove unnecessary errors if so.
                 if (latitude.text.isNotEmpty() && longitude.text.isNotEmpty()) {
-                    dialog.createDialog(this, "",
+                    dialog.searchWeather(this, "",
                         Integer.parseInt(longitude.text.toString()),
                         Integer.parseInt(latitude.text.toString()))
+                    address.error = null
                 } else if (address.text.isNotEmpty()) {
-                    dialog.createDialog(this, address.text.toString())
-                } else {
+                    dialog.searchWeather(this, address.text.toString())
+                    longitude.error = null
+                    latitude.error = null
+                } else { // Else show errors.
                     address.error = getString(R.string.required_place)
                     longitude.error = getString(R.string.required_place)
                     latitude.error = getString(R.string.required_place)
                 }
-
-                //dialog.show(supportFragmentManager, "weatherDialog")
-
             }
         }
         return super.onOptionsItemSelected(item)
@@ -103,7 +101,7 @@ class AddBathingSiteActivity : AppCompatActivity() {
 
         val alertDialog = createMessageAndGetDialog(name, address, longitude, latitude)
 
-        // Check if the mandatory fields are filled in.
+        // Check if the mandatory fields are filled in. Remove unnecessary errors if so.
         if (name.text.isNotEmpty() && address.text.isNotEmpty()) {
             longitude.error = null
             latitude.error = null

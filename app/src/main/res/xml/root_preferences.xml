@@ -4,6 +4,6 @@
         app:icon="@android:drawable/ic_menu_mapmode"
         app:key="fetch"
         app:title="@string/fetch_weather"
-        app:summary="@string/default_address"/>
+        />
 
 </PreferenceScreen>

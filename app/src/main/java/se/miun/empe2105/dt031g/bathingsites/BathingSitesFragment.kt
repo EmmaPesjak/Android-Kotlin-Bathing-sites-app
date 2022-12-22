@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 
 /**
- * A simple fragment.
+ * A bathing sites fragment.
  */
 class BathingSitesFragment : Fragment() {
 
