@@ -10,6 +10,11 @@ interface BathingSiteDao {
     @Query("SELECT name FROM bathing_sites")
     fun getAllNames(): List<SavedBathingSite> //stringar med namn?
 
+    // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
+    // Query för att kolla om lat + long finns
+    @Query("SELECT EXISTS(SELECT * FROM bathing_sites WHERE longitude = :longitude AND latitude = :latitude)")
+    fun coordsExists(longitude: Float?, latitude: Float?): Boolean
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)  //måste nog checka här om samma coordinater
     suspend fun insert(bathingSite: SavedBathingSite) //could take time will call with coroutine
 }
