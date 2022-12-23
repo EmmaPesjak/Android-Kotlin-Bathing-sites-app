@@ -15,6 +15,10 @@ interface BathingSiteDao {
     @Query("SELECT EXISTS(SELECT * FROM bathing_sites WHERE longitude = :longitude AND latitude = :latitude)")
     fun coordsExists(longitude: Float?, latitude: Float?): Boolean
 
+    // Räkna hur många bathing sites
+    @Query("SELECT COUNT(*) FROM bathing_sites")
+    fun getAmount(): Int
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)  //måste nog checka här om samma coordinater
     suspend fun insert(bathingSite: SavedBathingSite) //could take time will call with coroutine
 }

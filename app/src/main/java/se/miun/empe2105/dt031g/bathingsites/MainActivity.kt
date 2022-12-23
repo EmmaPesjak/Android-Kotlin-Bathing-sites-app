@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -20,9 +19,14 @@ class MainActivity : AppCompatActivity() {
 
         // Set click listener on the floating action button.
         val fab = findViewById<View>(R.id.fab)
-        fab.setOnClickListener { view ->
+        fab.setOnClickListener {
             startActivity(Intent(this, AddBathingSiteActivity::class.java))
         }
+
+//        val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
+//        bathingView.showCount()
+
+        //BathingSitesView.count
     }
 
     /**
@@ -33,9 +37,14 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
         bathingView.setOnClickListener {
-            bathingView.increaseCount()
+            startActivity(Intent(this, ShowSavedBathingSites::class.java))
         }
+        // Make sure the count is updated (especially when a site is added
+        // in AddBathingSiteActivity and the user is taken back to the MainActivity).
+        bathingView.showCount()
     }
+
+
 
     /**
      * Inflate the overflow menu.

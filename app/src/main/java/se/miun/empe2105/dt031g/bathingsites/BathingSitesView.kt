@@ -5,6 +5,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Custom class BathingSiteView, contains an image and a increasable counter.
@@ -13,6 +15,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 class BathingSitesView(
     context: Context, attrs: AttributeSet?
 ) : ConstraintLayout(context, attrs) {
+
+    private lateinit var appDatabase: AppDatabase
 
     // https://stackoverflow.com/questions/57788508/static-variables-in-kotlin
     // https://stackoverflow.com/questions/24464663/why-is-my-counter-being-reset-each-time-after-call-tooncreate/24464738#24464738
@@ -36,12 +40,14 @@ class BathingSitesView(
             }
         }
 
-        // Set the text of the text field.
-        val counterText = resources.getString(R.string.counter_text)
-        val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
-        nmb.text = "$count $counterText"
-        invalidate()
-        requestLayout()
+
+        GlobalScope.launch {
+            appDatabase = AppDatabase.getDatabase(context)
+            count = appDatabase.bathingSiteDao().getAmount()
+
+            // Set the text of the text field.
+            showCount()
+        }
     }
 
     /**
@@ -51,6 +57,10 @@ class BathingSitesView(
         // Increase count.
         count += 1
         // Update text.
+        showCount()
+    }
+
+    fun showCount() {
         val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
         val counterText = resources.getString(R.string.counter_text)
         nmb.text = "$count $counterText"

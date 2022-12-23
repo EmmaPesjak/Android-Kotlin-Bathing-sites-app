@@ -3,13 +3,11 @@ package se.miun.empe2105.dt031g.bathingsites
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.os.Looper
 import android.text.Editable
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.RatingBar
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.Dispatchers
@@ -109,7 +107,7 @@ class AddBathingSiteActivity : AppCompatActivity() {
         val longitude = findViewById<EditText>(R.id.longitude)
         val latitude = findViewById<EditText>(R.id.latitude)
 
-        val alertDialog = createMessageAndGetDialog(name, address, longitude, latitude)
+        //val alertDialog = createMessageAndGetDialog(name, address, longitude, latitude)
 
         // Check if the mandatory fields are filled in. Remove unnecessary errors if so.
         if (name.text.isNotEmpty() && address.text.isNotEmpty()) {
@@ -141,19 +139,9 @@ class AddBathingSiteActivity : AppCompatActivity() {
         }
     }
 
-
-    private suspend fun displayData(bathingSites: List<SavedBathingSite>) {
-
-        withContext(Dispatchers.Main) {
-            //displaya
-        }
-    }
-
     private fun writeData() {
 
-
-
-
+        // Get all input
         val name = findViewById<EditText>(R.id.name).text.toString()
         val description = findViewById<EditText>(R.id.description).text.toString()
         val address = findViewById<EditText>(R.id.address).text.toString()
@@ -164,58 +152,52 @@ class AddBathingSiteActivity : AppCompatActivity() {
         val dateWater = findViewById<EditText>(R.id.date_water).text.toString()
 
         // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
-
         var coordsExists : Boolean
 
         val savedBathingSite = SavedBathingSite(
             null, name, description, address, longitude, latitude, grade, waterTemp, dateWater
         )
 
+        // launch db queries in coroutine
         GlobalScope.launch(Dispatchers.IO) {
-            //kolla om coordinaterna är unika
+            //kolla om coordinaterna är unika, null kommer ändå läggas till
             coordsExists = appDatabase.bathingSiteDao().coordsExists(longitude, latitude)
 
             // lägg bara til om koordinaterna är unika
             if(!coordsExists) {
                 appDatabase.bathingSiteDao().insert(savedBathingSite)
-                makeSaveToast(coordsExists)
-                clearFields()
 
-                // sen ska jag återgå till mainactivity här och öka räknaren
+                //clearFields()//behövs detta ens eftersom man ändå går till main activity? eller ska allt mög egentligen sparas om man bytar activity?
 
+
+                BathingSitesView.count +=1
+
+
+                // Dispatch in the main thread
+                withContext(Dispatchers.Main) {
+                    android.app.AlertDialog.Builder(this@AddBathingSiteActivity)
+                    .setTitle("site added")
+                    .setNegativeButton(R.string.ok
+                    ) { dialog, _ -> dialog.dismiss() }
+                        .setOnDismissListener {
+
+
+                            finish()
+                        }
+                    .show()
+                }
             } else {
-                makeSaveToast(coordsExists)
+                withContext(Dispatchers.Main) {
+                    android.app.AlertDialog.Builder(this@AddBathingSiteActivity)
+                        .setTitle("site not unique")
+                        .setNegativeButton(R.string.ok
+                        ) { dialog, _ -> dialog.dismiss() }
+                        .show()
+                }
             }
-
         }
 
     }
-
-    private fun makeSaveToast(boolean: Boolean) {
-
-
-        // kraschar om jag lägger till två sites, får inte köra flera loopers??
-
-        Looper.prepare()
-        if (!boolean) {
-            Toast.makeText(this, "site added", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "site not unique", Toast.LENGTH_SHORT).show()
-        }
-
-    }
-
-    private fun readData() {
-
-        lateinit var bathingSites: List<SavedBathingSite>
-
-        GlobalScope.launch {
-            bathingSites = appDatabase.bathingSiteDao().getAllNames()
-            displayData(bathingSites)
-        }
-    }
-
-
 
 
 
