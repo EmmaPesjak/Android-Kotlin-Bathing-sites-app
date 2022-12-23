@@ -9,11 +9,12 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragmentContainerView"
         android:name="se.miun.empe2105.dt031g.bathingsites.BathingSitesFragment"
-        android:layout_width="362dp"
-        android:layout_height="418dp"
+        android:layout_width="348dp"
+        android:layout_height="356dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.49"
         tools:layout="@layout/fragment_bathing_sites" />
 
     <androidx.fragment.app.FragmentContainerView
