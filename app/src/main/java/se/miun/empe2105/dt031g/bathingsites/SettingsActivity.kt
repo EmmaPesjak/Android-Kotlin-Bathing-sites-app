@@ -30,18 +30,19 @@ class SettingsActivity : AppCompatActivity() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
 
-            val preferences = activity?.getSharedPreferences("fetch", Context.MODE_PRIVATE)
-            val editor = preferences?.edit()
+            // Fetch weather set-up.
+            val weatherPreferences = activity?.getSharedPreferences("fetch", Context.MODE_PRIVATE)
+            val editor = weatherPreferences?.edit()
 
             // Set default php-site if there is no value.
-            if (preferences?.getString("value", "").isNullOrBlank()) {
+            if (weatherPreferences?.getString("value", "").isNullOrBlank()) {
                 editor?.putString("value", getString(R.string.default_address))
                 editor?.apply()
             }
 
             // Set the summary text.
             val pref = findPreference("fetch") as EditTextPreference?
-            pref?.summary = preferences?.getString("value", "")
+            pref?.summary = weatherPreferences?.getString("value", "")
 
             // Change summary text and value when the user changes the preference.
             pref?.setOnPreferenceChangeListener { _, newValue ->
@@ -49,6 +50,30 @@ class SettingsActivity : AppCompatActivity() {
 
                 editor?.clear()?.apply()
                 editor?.putString("value", newValue.toString())?.apply()
+                true
+            }
+
+
+            // Download sites set-up.
+            val downloadPreferences = activity?.getSharedPreferences("download", Context.MODE_PRIVATE)
+            val dlEditor = downloadPreferences?.edit()
+
+            // Set default site if there is no value.
+            if (downloadPreferences?.getString("dlValue", "").isNullOrBlank()) {
+                dlEditor?.putString("dlValue", getString(R.string.default_download_url))
+                dlEditor?.apply()
+            }
+
+            // Set the summary text.
+            val preference = findPreference("download") as EditTextPreference?
+            preference?.summary = downloadPreferences?.getString("dlValue", "")
+
+            // Change summary text and value when the user changes the preference.
+            preference?.setOnPreferenceChangeListener { _, newValue ->
+                preference.summary = newValue.toString()
+
+                dlEditor?.clear()?.apply()
+                dlEditor?.putString("dlValue", newValue.toString())?.apply()
                 true
             }
         }

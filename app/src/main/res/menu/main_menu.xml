@@ -4,6 +4,9 @@
     <item
         android:title="@string/settings"
         android:id="@+id/main_settings"
-
+        />
+    <item
+        android:title="@string/download"
+        android:id="@+id/main_download"
         />
 </menu>

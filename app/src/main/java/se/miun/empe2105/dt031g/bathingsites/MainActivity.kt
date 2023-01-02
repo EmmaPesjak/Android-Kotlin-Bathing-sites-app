@@ -57,9 +57,9 @@ class MainActivity : AppCompatActivity() {
             R.id.main_settings -> {
                 startActivity(Intent(this, SettingsActivity::class.java))
             }
-//            R.id.dial_download -> {
-//                startActivity(Intent(this, DownloadActivity::class.java))
-//            }
+            R.id.main_download -> {
+                startActivity(Intent(this, DownloadActivity::class.java))
+            }
         }
         return super.onOptionsItemSelected(item)
     }

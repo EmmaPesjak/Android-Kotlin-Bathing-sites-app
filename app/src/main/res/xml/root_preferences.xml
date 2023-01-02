@@ -6,4 +6,10 @@
         app:title="@string/fetch_weather"
         />
 
+    <EditTextPreference
+        app:icon="@android:drawable/ic_menu_mapmode"
+        app:key="download"
+        app:title="@string/download_sites"
+        />
+
 </PreferenceScreen>
