@@ -11,14 +11,16 @@
     <string name="required_name">Name is required.</string>
     <string name="required_place">Address and/or coordinates are required</string>
 
-<string name="name">Name: </string>
-    <string name="description">Description: </string>
-    <string name="address">Address: </string>
-    <string name="longitude">Longitude: </string>
-    <string name="latitude">Latitude: </string>
-    <string name="grade">Grade: </string>
-    <string name="water_temp">Water temp: </string>
-    <string name="date_water">Date for temp: </string>
+    <!-- Bathing site details -->
+    <string name="name">\nName:\u0020</string>
+    <string name="description">\nDescription:\u0020</string>
+    <string name="address">\nAddress:\u0020</string>
+    <string name="longitude">\nLongitude:\u0020</string>
+    <string name="latitude">\nLatitude:\u0020</string>
+    <string name="grade">\nGrade:\u0020</string>
+    <string name="water_temp">\nWater temp:\u0020</string>
+    <string name="date_water">\nDate for temp:\u0020</string>
+
     <string name="ok">OK</string>
 
     <string name="fab">Floating action button</string>
@@ -30,6 +32,10 @@
     <string name="title_activity_show_saved_bathing_sites">Saved bathing sites</string>
     <string name="getting_current_weather">Getting current weather…</string>
     <string name="current_weather">Current weather</string>
+
+
+    <string name="site_added">Site added.</string>
+    <string name="not_unique">Bathing site with the same coordinates already exists.</string>
 
 
     <!-- Messages Preferences -->

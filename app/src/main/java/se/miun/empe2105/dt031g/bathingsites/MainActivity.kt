@@ -22,11 +22,6 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener {
             startActivity(Intent(this, AddBathingSiteActivity::class.java))
         }
-
-//        val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
-//        bathingView.showCount()
-
-        //BathingSitesView.count
     }
 
     /**
@@ -37,7 +32,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
         bathingView.setOnClickListener {
-            startActivity(Intent(this, ShowSavedBathingSites::class.java))
+            startActivity(Intent(this, ShowBathingSitesActivity::class.java))
         }
         // Make sure the count is updated (especially when a site is added
         // in AddBathingSiteActivity and the user is taken back to the MainActivity).

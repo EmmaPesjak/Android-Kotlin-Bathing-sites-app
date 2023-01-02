@@ -8,7 +8,7 @@ import androidx.room.Query
 @Dao
 interface BathingSiteDao {
     @Query("SELECT * FROM bathing_sites")
-    fun getAllSites(): List<SavedBathingSite>
+    fun getAllSites(): List<BathingSite>
 
     // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
     // Query för att kolla om lat + long finns
@@ -20,5 +20,5 @@ interface BathingSiteDao {
     fun getAmount(): Int
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)  //måste nog checka här om samma coordinater
-    suspend fun insert(bathingSite: SavedBathingSite) //could take time will call with coroutine
+    suspend fun insert(bathingSite: BathingSite) //could take time will call with coroutine
 }

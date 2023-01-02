@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 //Singleton so only one database will be created https://www.youtube.com/watch?v=NS7yYdW3Lho
-@Database(entities = [SavedBathingSite :: class], version = 1)
+@Database(entities = [BathingSite :: class], version = 1)
 abstract class AppDatabase: RoomDatabase() {
 
     abstract fun bathingSiteDao(): BathingSiteDao

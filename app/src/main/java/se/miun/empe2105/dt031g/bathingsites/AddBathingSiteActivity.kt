@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
 import android.widget.RatingBar
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -97,8 +96,7 @@ class AddBathingSiteActivity : AppCompatActivity() {
     }
 
     /**
-     * Method for saving the bathing site, checks mandatory inputs and
-     * displays the site in an alert dialog.
+     * Method for the save button in the overflow menu, checks mandatory inputs.
      */
     private fun saveSite() {
 
@@ -107,20 +105,16 @@ class AddBathingSiteActivity : AppCompatActivity() {
         val longitude = findViewById<EditText>(R.id.longitude)
         val latitude = findViewById<EditText>(R.id.latitude)
 
-        //val alertDialog = createMessageAndGetDialog(name, address, longitude, latitude)
-
         // Check if the mandatory fields are filled in. Remove unnecessary errors if so.
         if (name.text.isNotEmpty() && address.text.isNotEmpty()) {
             longitude.error = null
             latitude.error = null
-            //alertDialog.show()  //här ska det ju sparas till databasen och typ visas en toast istället
-            writeData()
+            writeData() // Save to db.
             return
         } else if (name.text.isNotEmpty() && latitude.text.isNotEmpty() &&
             longitude.text.isNotEmpty()) {
             address.error = null
-            //alertDialog.show() //här ska det ju sparas till databasen och typ visas en toast istället
-            writeData()
+            writeData() // Save to db.
             return
         }
 
@@ -139,9 +133,12 @@ class AddBathingSiteActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Method for saving the bathing site in the database.
+     */
     private fun writeData() {
 
-        // Get all input
+        // Get all input.
         val name = findViewById<EditText>(R.id.name).text.toString()
         val description = findViewById<EditText>(R.id.description).text.toString()
         val address = findViewById<EditText>(R.id.address).text.toString()
@@ -151,45 +148,43 @@ class AddBathingSiteActivity : AppCompatActivity() {
         val waterTemp = findViewById<EditText>(R.id.water_temp).text.toString().toFloatOrNull()
         val dateWater = findViewById<EditText>(R.id.date_water).text.toString()
 
-        // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
-        var coordsExists : Boolean
-
-        val savedBathingSite = SavedBathingSite(
+        // Create the site.
+        val bathingSite = BathingSite(
             null, name, description, address, longitude, latitude, grade, waterTemp, dateWater
         )
 
-        // launch db queries in coroutine
+        // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
+        var coordsExists : Boolean
+
+        // Launch db queries in a coroutine.
         GlobalScope.launch(Dispatchers.IO) {
-            //kolla om coordinaterna är unika, null kommer ändå läggas till
+            // Check if the coordinates are unique. Null valued coordinates will still be added.
             coordsExists = appDatabase.bathingSiteDao().coordsExists(longitude, latitude)
 
-            // lägg bara til om koordinaterna är unika
+            // Only add the site if the coordinates are unique.
             if(!coordsExists) {
-                appDatabase.bathingSiteDao().insert(savedBathingSite)
+                // Add to db.
+                appDatabase.bathingSiteDao().insert(bathingSite)
 
-                //clearFields()//behövs detta ens eftersom man ändå går till main activity? eller ska allt mög egentligen sparas om man bytar activity?
-
-
+                // Increase the count of bathing sites.
                 BathingSitesView.count +=1
 
-
-                // Dispatch in the main thread
+                // Dispatch an alert dialog with a success message in the main thread.
                 withContext(Dispatchers.Main) {
                     android.app.AlertDialog.Builder(this@AddBathingSiteActivity)
-                    .setTitle("site added")
+                    .setMessage(getString(R.string.site_added))
                     .setNegativeButton(R.string.ok
                     ) { dialog, _ -> dialog.dismiss() }
                         .setOnDismissListener {
-
-
                             finish()
                         }
                     .show()
                 }
             } else {
+                // Else dispatch an alert dialog with a failed message in the main thread.
                 withContext(Dispatchers.Main) {
                     android.app.AlertDialog.Builder(this@AddBathingSiteActivity)
-                        .setTitle("site not unique")
+                        .setMessage(getString(R.string.not_unique))
                         .setNegativeButton(R.string.ok
                         ) { dialog, _ -> dialog.dismiss() }
                         .show()
@@ -197,34 +192,6 @@ class AddBathingSiteActivity : AppCompatActivity() {
             }
         }
 
-    }
-
-
-
-    /**
-     * Method for creating the alert dialog.
-     */
-    private fun createMessageAndGetDialog(name : EditText, address: EditText, longitude: EditText, latitude:EditText) : AlertDialog {
-
-        // Create the text
-        val dialogText = getString(R.string.name) + name.text + "\n" + getString(
-            R.string.description) + findViewById<EditText>(R.id.description).text + "\n" + getString(
-            R.string.address) + address.text + "\n" + getString(
-            R.string.longitude) + longitude.text + "\n" + getString(
-            R.string.latitude) + latitude.text + "\n" + getString(
-            R.string.grade) + findViewById<RatingBar>(R.id.rating_bar).rating + "\n" + getString(
-            R.string.water_temp) + findViewById<EditText>(R.id.water_temp).text + "\n" + getString(
-            R.string.date_water) + findViewById<EditText>(R.id.date_water).text
-
-        // Create the alert dialog.
-        val builder = AlertDialog.Builder(this)
-        builder.setMessage(dialogText)
-        builder.setNegativeButton(R.string.ok) { dialog, _ ->
-            dialog.cancel()
-        }
-        val alertDialog: AlertDialog = builder.create()
-        alertDialog.setCancelable(false)
-        return alertDialog
     }
 
     /**

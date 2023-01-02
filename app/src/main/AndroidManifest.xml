@@ -37,7 +37,7 @@
         </activity>
 
         <activity
-            android:name=".ShowSavedBathingSites"
+            android:name=".ShowBathingSitesActivity"
             android:exported="false"
             android:label="@string/title_activity_show_saved_bathing_sites"
             android:parentActivityName=".MainActivity">
