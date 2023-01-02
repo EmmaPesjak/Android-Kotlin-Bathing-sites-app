@@ -11,7 +11,7 @@
     <string name="required_name">Name is required.</string>
     <string name="required_place">Address and/or coordinates are required</string>
 
-    <string name="name">Name: </string>
+<string name="name">Name: </string>
     <string name="description">Description: </string>
     <string name="address">Address: </string>
     <string name="longitude">Longitude: </string>

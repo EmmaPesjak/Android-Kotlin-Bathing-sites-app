@@ -7,8 +7,8 @@ import androidx.room.Query
 
 @Dao
 interface BathingSiteDao {
-    @Query("SELECT name FROM bathing_sites")
-    fun getAllNames(): List<SavedBathingSite> //stringar med namn?
+    @Query("SELECT * FROM bathing_sites")
+    fun getAllSites(): List<SavedBathingSite>
 
     // https://stackoverflow.com/questions/52739840/how-can-i-check-whether-data-exist-in-room-database-before-inserting-into-databa
     // Query för att kolla om lat + long finns
