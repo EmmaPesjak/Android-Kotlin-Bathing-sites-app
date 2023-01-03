@@ -14,10 +14,7 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.io.*
 
 class DownloadActivity : AppCompatActivity() {
@@ -27,6 +24,7 @@ class DownloadActivity : AppCompatActivity() {
     private lateinit var manager: DownloadManager
     private lateinit var appDatabase: AppDatabase
 
+    @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("Range")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,137 +47,136 @@ class DownloadActivity : AppCompatActivity() {
             webView.loadUrl(url)
         }
 
-
-
-
         webView.setDownloadListener { url, _, _, _, _ ->
             // Download on a coroutine.
             runBlocking {
                 GlobalScope.launch {
 
 
+
                     val fileEnding: String = url.substringAfterLast("/")  // ex bathingsites1.csv
                     val dirName: String = fileEnding.substringBefore(".")  // ex bathingsites1
 
-                    // Download the file if it is not already downloaded.
-                    if(!checkIfDownloaded()) {
-                        // Download with the help of a download manager.
-                        val request = DownloadManager.Request(Uri.parse(url))
-                        request.setNotificationVisibility(
-                            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                    // Download with the help of a download manager.
+                    val request = DownloadManager.Request(Uri.parse(url))
+                    request.setNotificationVisibility(
+                        DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+                    )
+                    request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS,
+                        dirName
+                    )
+                    manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                    downloadId = manager.enqueue(request)
+
+
+                    // Calculate the progress for the progressbar during download.
+                    var downloading = true
+                    while (downloading) {
+                        val q = DownloadManager.Query()
+                        q.setFilterById(downloadId!!)
+                        val cursor: Cursor = manager.query(q)
+                        cursor.moveToFirst()
+                        val bytesDownloaded: Int = cursor.getInt(
+                            cursor
+                                .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
                         )
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS,
-                            dirName
+                        val bytesTotal: Int = cursor.getInt(
+                            cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
                         )
-                        manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-                        downloadId = manager.enqueue(request)
-
-
-                        // Calculate the progress for the progressbar during download.
-                        var downloading = true
-                        while (downloading) {
-                            val q = DownloadManager.Query()
-                            q.setFilterById(downloadId!!)
-                            val cursor: Cursor = manager.query(q)
-                            cursor.moveToFirst()
-                            val bytesDownloaded: Int = cursor.getInt(
-                                cursor
-                                    .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
-                            )
-                            val bytesTotal: Int = cursor.getInt(
-                                cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
-                            )
-                            if (cursor.getInt(
-                                    cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                                ) == DownloadManager.STATUS_SUCCESSFUL
-                            ) {
-                                downloading = false
-                            }
-                            val dlProgress: Int = ((bytesDownloaded * 100) / bytesTotal)
-                            runOnUiThread {
-                                showProgress(dlProgress)
-                                showProgressText(dirName)
-                            }
-                            cursor.close()
-                            delay(50) // Tiny delay so the loop doesn't go crazy.
+                        if (cursor.getInt(
+                                cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                            ) == DownloadManager.STATUS_SUCCESSFUL
+                        ) {
+                            downloading = false
                         }
-
-                        setProgressbarInvisible()
-
-
-
-
-                        // sen här ska alla badplatser sparas i databasen och
-                        // sen ska det raderas från enheten
-                        val pathName = "" + Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS
-                        ) + "/" + dirName
-                        val downloadedFile = File(pathName)
-
-                        var fileInputStream = FileInputStream(downloadedFile)
-                        var inputStreamReader: InputStreamReader = InputStreamReader(fileInputStream)
-                        val bufferedReader: BufferedReader = BufferedReader(inputStreamReader)
-
-                        var text: String? = null
-                        while (run {
-                                text = bufferedReader.readLine()
-                                text
-                            } != null) {
-
-
-
-                            println(text)
-                            // här måste det delas och sparas
-
-//                            val tjena = text?.split(",")?.toTypedArray()  //här kan det splittas för mycket :(
-//
-//                            println("longi: " + tjena?.get(0)?.substringAfterLast('"'))
-//                            println("lati: " + tjena?.get(1))
-//                            println(println("name: " + tjena?.get(2)?.substringAfterLast('"')))  //detta blir fel om det inte finns en adress :(
-//
-//                            val hej = tjena?.drop(3)
-//                            if (hej != null) {
-//                                hej.forEach {
-//                                    println(it.substringBefore('"').substringAfterLast(" "))
-//                                }
-//
-//
-////                            if (hej != null) {
-////                                println("address: " + (tjena?.drop(3)?.substringBefore('"')))
-////                            }
-////                            var longitude = text?.substringBefore(",")
-////                            println(longitude)
-////
-////                            var latitude = text?.substringBefore(",")
-////                            println(latitude)
-//                            }
-                            //println(" ")
-
-                            val coords = text?.substringBefore(",\"\"")?.substringAfterLast('"')
-                            val longi = coords?.substringBefore(",")
-                            val lati = coords?.substringAfter(",")
-
-                            val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
-                                ?.substringAfterLast("\"\"")
-
-                            println("Coords?: $coords")
-                            println("longi: $longi")
-                            println("lati: $lati")
-                            println("Name + address?: $nameAndPossiblyAddress")
-
-                            println(" ")
-
-
+                        val dlProgress: Int = ((bytesDownloaded * 100) / bytesTotal)
+                        runOnUiThread {
+                            showProgress(dlProgress)
+                            showProgressText(dirName)
                         }
-                        fileInputStream.close()
-
-
-
-                        // Set the download ID to null since the download is complete and it
-                        // does not need to be stored anymore.
-                        downloadId = null
+                        cursor.close()
+                        delay(50) // Tiny delay so the loop doesn't go crazy.
                     }
+
+
+                    dbProgress()
+
+
+                    // sen här ska alla badplatser sparas i databasen och
+                    // sen ska det raderas från enheten
+                    val pathName = "" + Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    ) + "/" + dirName
+                    val downloadedFile = File(pathName)
+
+                    val fileInputStream = FileInputStream(downloadedFile)
+                    val inputStreamReader = InputStreamReader(fileInputStream)
+                    val bufferedReader = BufferedReader(inputStreamReader)
+
+                    var text: String? = null
+                    while (run {
+                            text = bufferedReader.readLine()
+                            text
+                        } != null) {
+
+                        //showProgress(bufferedReader.lines().count().toInt())
+
+                        val coordinates = text?.substringBefore(",\"\"")?.substringAfterLast('"') //ex 15.6746,62.1556
+                        val longitude = coordinates?.substringBefore(",") // ex 15.6746
+                        val latitude = coordinates?.substringAfter(",")     // ex 62.1556
+
+                        val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
+                            ?.substringAfterLast("\"\"")  // ex Viken, Västersjön, Ramsjö
+
+                        val name = nameAndPossiblyAddress?.substringBefore(",") // ex Viken
+
+                        val address : String = if (nameAndPossiblyAddress?.contains(",")
+                            == true) {
+                            nameAndPossiblyAddress.substringAfter(",")  // ex Västersjön, Ramsjö
+                        } else {
+                            ""
+                        }
+
+
+                        val longitudeFloat = longitude?.toFloat()
+                        val latitudeFloat = latitude?.toFloat()
+
+                        // Create the site.
+                        val bathingSite = BathingSite(
+                            null, name, null, address,
+                            longitudeFloat, latitudeFloat,
+                            null, null, null
+                        )
+
+
+                        // Check if the coordinates are unique.
+                        val coordsExists : Boolean =
+                            appDatabase.bathingSiteDao().coordsExists(longitudeFloat, latitudeFloat)
+
+
+                        // Only add the site if the coordinates are unique.
+                        if (!coordsExists) {
+                            // Add to db.
+                            appDatabase.bathingSiteDao().insert(bathingSite)
+
+                            // Increase the count of bathing sites.
+                            BathingSitesView.count += 1
+                        }
+
+
+                    }
+                    fileInputStream.close()
+
+                    downloadedFile.delete()
+
+
+                    setProgressbarInvisible()
+
+                    // Set the download ID to null since the download is complete and it
+                    // does not need to be stored anymore.
+                    downloadId = null
+
                 }
             }
         }
@@ -199,7 +196,6 @@ class DownloadActivity : AppCompatActivity() {
         progressBar.visibility = View.INVISIBLE
         val progressBarText = findViewById<TextView>(R.id.progressbarText)
         progressBarText.visibility = View.INVISIBLE
-        println("hallå?")
     }
 
     // Make the text on the progressbar visible.
@@ -210,12 +206,14 @@ class DownloadActivity : AppCompatActivity() {
         progressBarText.text = progressText
     }
 
+    private fun dbProgress() {
+        val progressBarText = findViewById<TextView>(R.id.progressbarText)
+        progressBarText.text = getString(R.string.adding_to_db)
+        val progressBar = findViewById<ProgressBar>(R.id.progressbar)
+        //progressBar.progress =
 
-    private fun checkIfDownloaded(): Boolean {
-        return false
     }
 
-    //Behövs detta???? JA?
     // Overridden method that cancels a current download if the user restarts the
     // application during download.
     override fun onPause() {

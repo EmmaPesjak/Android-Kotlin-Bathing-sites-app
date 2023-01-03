@@ -34,12 +34,6 @@ class SettingsActivity : AppCompatActivity() {
             val weatherPreferences = activity?.getSharedPreferences("fetch", Context.MODE_PRIVATE)
             val editor = weatherPreferences?.edit()
 
-            // Set default php-site if there is no value.
-            if (weatherPreferences?.getString("value", "").isNullOrBlank()) {
-                editor?.putString("value", getString(R.string.default_address))
-                editor?.apply()
-            }
-
             // Set the summary text.
             val pref = findPreference("fetch") as EditTextPreference?
             pref?.summary = weatherPreferences?.getString("value", "")
@@ -57,12 +51,6 @@ class SettingsActivity : AppCompatActivity() {
             // Download sites set-up.
             val downloadPreferences = activity?.getSharedPreferences("download", Context.MODE_PRIVATE)
             val dlEditor = downloadPreferences?.edit()
-
-            // Set default site if there is no value.
-            if (downloadPreferences?.getString("dlValue", "").isNullOrBlank()) {
-                dlEditor?.putString("dlValue", getString(R.string.default_download_url))
-                dlEditor?.apply()
-            }
 
             // Set the summary text.
             val preference = findPreference("download") as EditTextPreference?

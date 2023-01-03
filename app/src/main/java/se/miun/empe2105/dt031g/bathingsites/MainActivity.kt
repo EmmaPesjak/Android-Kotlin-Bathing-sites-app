@@ -1,6 +1,7 @@
 package se.miun.empe2105.dt031g.bathingsites
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -21,6 +22,22 @@ class MainActivity : AppCompatActivity() {
         val fab = findViewById<View>(R.id.fab)
         fab.setOnClickListener {
             startActivity(Intent(this, AddBathingSiteActivity::class.java))
+        }
+
+        // Set default php-site for fetching weather if there is no value.
+        val weatherPreferences = getSharedPreferences("fetch", Context.MODE_PRIVATE)
+        val editor = weatherPreferences?.edit()
+        if (weatherPreferences?.getString("value", "").isNullOrBlank()) {
+            editor?.putString("value", getString(R.string.default_address))
+            editor?.apply()
+        }
+
+        // Set default site for downloading bathing sites if there is no value.
+        val downloadPreferences = getSharedPreferences("download", Context.MODE_PRIVATE)
+        val dlEditor = downloadPreferences?.edit()
+        if (downloadPreferences?.getString("dlValue", "").isNullOrBlank()) {
+            dlEditor?.putString("dlValue", getString(R.string.default_download_url))
+            dlEditor?.apply()
         }
     }
 

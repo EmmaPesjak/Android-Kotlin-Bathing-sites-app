@@ -55,6 +55,7 @@
 
 
     <string name="downloading">Downloading</string>
+    <string name="adding_to_db">Now adding sites to database</string>
 
 
 </resources>
