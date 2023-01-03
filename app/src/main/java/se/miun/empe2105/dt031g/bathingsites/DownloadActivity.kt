@@ -19,7 +19,6 @@ import java.io.*
 
 class DownloadActivity : AppCompatActivity() {
 
-
     private var downloadId: Long? = null
     private lateinit var manager: DownloadManager
     private lateinit var appDatabase: AppDatabase
@@ -39,148 +38,143 @@ class DownloadActivity : AppCompatActivity() {
             ): Boolean { return false }
         }
 
-        // Load the URL for the page.
-        // Get the url from settings.
+        // Load the URL for the page. Get the url from settings.
         val preferences = getSharedPreferences("download", Context.MODE_PRIVATE)
         val url = preferences.getString("dlValue", "")
         if (url != null) {
             webView.loadUrl(url)
         }
 
+        // Set download listener.
         webView.setDownloadListener { url, _, _, _, _ ->
             // Download on a coroutine.
             runBlocking {
-                GlobalScope.launch {
+                withContext(Dispatchers.IO) {
+                    GlobalScope.launch {
 
+                        // Download with the help of a download manager.
+                        val fileEnding: String =
+                            url.substringAfterLast("/")  // ex bathingsites1.csv
+                        val dirName: String = fileEnding.substringBefore(".")  // ex bathingsites1
 
-
-                    val fileEnding: String = url.substringAfterLast("/")  // ex bathingsites1.csv
-                    val dirName: String = fileEnding.substringBefore(".")  // ex bathingsites1
-
-                    // Download with the help of a download manager.
-                    val request = DownloadManager.Request(Uri.parse(url))
-                    request.setNotificationVisibility(
-                        DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
-                    )
-                    request.setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_DOWNLOADS,
-                        dirName
-                    )
-                    manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
-                    downloadId = manager.enqueue(request)
-
-
-                    // Calculate the progress for the progressbar during download.
-                    var downloading = true
-                    while (downloading) {
-                        val q = DownloadManager.Query()
-                        q.setFilterById(downloadId!!)
-                        val cursor: Cursor = manager.query(q)
-                        cursor.moveToFirst()
-                        val bytesDownloaded: Int = cursor.getInt(
-                            cursor
-                                .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                        val request = DownloadManager.Request(Uri.parse(url))
+                        request.setNotificationVisibility(
+                            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
                         )
-                        val bytesTotal: Int = cursor.getInt(
-                            cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                        request.setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            dirName
                         )
-                        if (cursor.getInt(
-                                cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
-                            ) == DownloadManager.STATUS_SUCCESSFUL
-                        ) {
-                            downloading = false
+                        manager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+                        downloadId = manager.enqueue(request)
+
+                        // Calculate the progress for the progressbar during download.
+                        var downloading = true
+                        while (downloading) {
+                            val q = DownloadManager.Query()
+                            q.setFilterById(downloadId!!)
+                            val cursor: Cursor = manager.query(q)
+                            cursor.moveToFirst()
+                            val bytesDownloaded: Int = cursor.getInt(
+                                cursor
+                                    .getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                            )
+                            val bytesTotal: Int = cursor.getInt(
+                                cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                            )
+                            if (cursor.getInt(
+                                    cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                                ) == DownloadManager.STATUS_SUCCESSFUL
+                            ) {
+                                downloading = false
+                            }
+                            val dlProgress: Int = ((bytesDownloaded * 100) / bytesTotal)
+                            runOnUiThread {
+                                showProgress(dlProgress)
+                                showProgressText(dirName)
+                            }
+                            cursor.close()
+                            delay(100) // Tiny delay so the loop doesn't go crazy.
                         }
-                        val dlProgress: Int = ((bytesDownloaded * 100) / bytesTotal)
-                        runOnUiThread {
-                            showProgress(dlProgress)
-                            showProgressText(dirName)
+
+                        // Download complete, add to database. Now change the text of the progressbar.
+                        val progressBarText = findViewById<TextView>(R.id.progressbarText)
+                        progressBarText.text = getString(R.string.adding_to_db)
+
+                        val pathName = "" + Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_DOWNLOADS
+                        ) + "/" + dirName
+                        val downloadedFile = File(pathName)
+
+                        // Read from input stream.
+                        val fileInputStream = FileInputStream(downloadedFile)
+                        val inputStreamReader = InputStreamReader(fileInputStream)
+                        val bufferedReader = BufferedReader(inputStreamReader)
+
+                        var text: String? = null
+                        while (run {
+                                text = bufferedReader.readLine()
+                                text
+                            } != null) {
+
+                            // Get values.
+                            val coordinates = text?.substringBefore(",\"\"")
+                                ?.substringAfterLast('"') //ex 15.6746,62.1556
+                            val longitude = coordinates?.substringBefore(",") // ex 15.6746
+                            val latitude = coordinates?.substringAfter(",")     // ex 62.1556
+
+                            val longitudeFloat = longitude?.toFloat()
+                            val latitudeFloat = latitude?.toFloat()
+                            // Check if the coordinates are unique.
+                            val coordsExists: Boolean =
+                                appDatabase.bathingSiteDao()
+                                    .coordsExists(longitudeFloat, latitudeFloat)
+
+                            // Only add the site if the coordinates are unique.
+                            if (!coordsExists) {
+
+                                // Get the rest of the values.
+                                val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
+                                    ?.substringAfterLast("\"\"")  // ex Viken, Västersjön, Ramsjö
+
+                                val name = nameAndPossiblyAddress?.substringBefore(",") // ex Viken
+
+                                // Check if there is an address, address exists if the string contains a comma.
+                                val address: String = if (nameAndPossiblyAddress?.contains(",")
+                                    == true
+                                ) {
+                                    nameAndPossiblyAddress.substringAfter(",")  // ex Västersjön, Ramsjö
+                                } else {
+                                    ""
+                                }
+
+                                // Create the site.
+                                val bathingSite = BathingSite(
+                                    null, name, null, address,
+                                    longitudeFloat, latitudeFloat,
+                                    null, null, null
+                                )
+                                // Add to db.
+                                appDatabase.bathingSiteDao().insert(bathingSite)
+                                // Increase the count of bathing sites.
+                                BathingSitesView.count += 1
+                            }
                         }
-                        cursor.close()
-                        delay(50) // Tiny delay so the loop doesn't go crazy.
+                        // Close the inputstream.
+                        withContext(Dispatchers.IO) {
+                            fileInputStream.close()
+                        }
+                        // Delete the downloaded file.
+                        downloadedFile.delete()
+                        // Set the progressbar invisible.
+                        setProgressbarInvisible()
+                        // Set the download ID to null since the download is complete and it
+                        // does not need to be stored anymore.
+                        downloadId = null
                     }
-
-
-                    dbProgress()
-
-
-                    // sen här ska alla badplatser sparas i databasen och
-                    // sen ska det raderas från enheten
-                    val pathName = "" + Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    ) + "/" + dirName
-                    val downloadedFile = File(pathName)
-
-                    val fileInputStream = FileInputStream(downloadedFile)
-                    val inputStreamReader = InputStreamReader(fileInputStream)
-                    val bufferedReader = BufferedReader(inputStreamReader)
-
-                    var text: String? = null
-                    while (run {
-                            text = bufferedReader.readLine()
-                            text
-                        } != null) {
-
-                        //showProgress(bufferedReader.lines().count().toInt())
-
-                        val coordinates = text?.substringBefore(",\"\"")?.substringAfterLast('"') //ex 15.6746,62.1556
-                        val longitude = coordinates?.substringBefore(",") // ex 15.6746
-                        val latitude = coordinates?.substringAfter(",")     // ex 62.1556
-
-                        val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
-                            ?.substringAfterLast("\"\"")  // ex Viken, Västersjön, Ramsjö
-
-                        val name = nameAndPossiblyAddress?.substringBefore(",") // ex Viken
-
-                        val address : String = if (nameAndPossiblyAddress?.contains(",")
-                            == true) {
-                            nameAndPossiblyAddress.substringAfter(",")  // ex Västersjön, Ramsjö
-                        } else {
-                            ""
-                        }
-
-
-                        val longitudeFloat = longitude?.toFloat()
-                        val latitudeFloat = latitude?.toFloat()
-
-                        // Create the site.
-                        val bathingSite = BathingSite(
-                            null, name, null, address,
-                            longitudeFloat, latitudeFloat,
-                            null, null, null
-                        )
-
-
-                        // Check if the coordinates are unique.
-                        val coordsExists : Boolean =
-                            appDatabase.bathingSiteDao().coordsExists(longitudeFloat, latitudeFloat)
-
-
-                        // Only add the site if the coordinates are unique.
-                        if (!coordsExists) {
-                            // Add to db.
-                            appDatabase.bathingSiteDao().insert(bathingSite)
-
-                            // Increase the count of bathing sites.
-                            BathingSitesView.count += 1
-                        }
-
-
-                    }
-                    fileInputStream.close()
-
-                    downloadedFile.delete()
-
-
-                    setProgressbarInvisible()
-
-                    // Set the download ID to null since the download is complete and it
-                    // does not need to be stored anymore.
-                    downloadId = null
-
                 }
             }
         }
-
     }
 
     // Update the progressbar with the current progress.
@@ -204,14 +198,6 @@ class DownloadActivity : AppCompatActivity() {
         progressBarText.visibility = View.VISIBLE
         val progressText = " ${getString(R.string.downloading)} $text"
         progressBarText.text = progressText
-    }
-
-    private fun dbProgress() {
-        val progressBarText = findViewById<TextView>(R.id.progressbarText)
-        progressBarText.text = getString(R.string.adding_to_db)
-        val progressBar = findViewById<ProgressBar>(R.id.progressbar)
-        //progressBar.progress =
-
     }
 
     // Overridden method that cancels a current download if the user restarts the

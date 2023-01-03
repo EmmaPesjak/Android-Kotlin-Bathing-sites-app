@@ -2,6 +2,7 @@ package se.miun.empe2105.dt031g.bathingsites
 
 import android.content.Context
 import android.os.Bundle
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,6 +26,12 @@ class ShowBathingSitesActivity : AppCompatActivity() {
         setContentView(R.layout.activity_show_saved_bathing_sites)
         appDatabase = AppDatabase.getDatabase(this)
         readData()
+
+        // Set a text if there are no sites in the database to be displayed.
+        if (BathingSitesView.count == 0) {
+            val textView = findViewById<TextView>(R.id.empty_recycler_text)
+            textView.text = getString(R.string.no_sites)
+        }
     }
 
     /**

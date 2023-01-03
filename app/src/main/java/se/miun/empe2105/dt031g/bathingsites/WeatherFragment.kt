@@ -8,8 +8,11 @@ import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
+import kotlinx.coroutines.*
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.FileNotFoundException
+import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -24,22 +27,25 @@ class WeatherFragment : DialogFragment() {
     private lateinit var weatherDescription: String
     private lateinit var imageUrl: String
     private lateinit var couldNotFind: String
+    private lateinit var malformedUrl: String
     private lateinit var celsius: String
     private lateinit var png: String
 
     /**
      * Function for searching for the weather using coordinates or address.
-     * Displays a progress dialog while fetching and a weather (or could not find)
+     * Displays a progress dialog while fetching and a weather/could not find/error
      * dialog when finished fetching. Since weather changes over time, values are not
      * stored and the function always fetches the weather even if the user searches
      * the same place twice or more times.
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun searchWeather(activity: Activity, address: String? = "", longitude: Int? = null, latitude: Int? = null) {
 
         val progressDialog = ProgressDialog(activity)
 
         // Get strings from the activity, these are used later.
         couldNotFind = activity.resources.getString(R.string.could_not_find)
+        malformedUrl = activity.resources.getString(R.string.malformed_url)
         imageUrl = activity.resources.getString(R.string.image_url)
         celsius = activity.resources.getString(R.string.celsius)
         png = activity.resources.getString(R.string.png)
@@ -54,14 +60,59 @@ class WeatherFragment : DialogFragment() {
             // In first hand, download with coordinates.
             if (longitude != null && latitude != null) {
                 val completeUrl = "$url?lat=$latitude&lon=$longitude"
-                getWeatherData(completeUrl)
+
+                // Launch with timeout or null, catch possible errors.
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        withTimeoutOrNull(5000) {
+                            try {
+                                getWeatherData(completeUrl)
+                                // Dismiss the progress dialog, this also triggers displaying the weather dialog.
+                                progressDialog.dismiss()
+                            } catch (e: Exception) {
+                                when(e) {
+                                    is MalformedURLException,
+                                        is FileNotFoundException -> {
+                                        weatherDescription = malformedUrl
+                                        // Dismiss the progress dialog, this also triggers displaying the error.
+                                        progressDialog.dismiss()
+                                    }
+                                    else -> throw e
+                                }
+                            }
+                        }
+                    }
+                }
             } else if (address != "") {
+
+                val town = address?.substringAfterLast(" ")
+
                 // Otherwise download with the address.
-                val completeUrl = "$url?q=$address"
-                getWeatherData(completeUrl)
+                val completeUrl = "$url?q=$town"
+
+                // Launch with timeout or null, catch possible errors.
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        withTimeoutOrNull(5000) {
+                            try {
+                                getWeatherData(completeUrl)
+                                // Dismiss the progress dialog, this also triggers displaying the weather dialog.
+                                progressDialog.dismiss()
+                            } catch (e: Exception) {
+                                when (e) {
+                                    is MalformedURLException,
+                                    is FileNotFoundException -> {
+                                        weatherDescription = malformedUrl
+                                        // Dismiss the progress dialog, this also triggers displaying the error.
+                                        progressDialog.dismiss()
+                                    }
+                                    else -> throw e
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            // Dismiss the progress dialog, this also triggers displaying the weather dialog.
-            progressDialog.dismiss()
         }
 
         // Show a progress dialog while fetching weather data.
@@ -93,6 +144,7 @@ class WeatherFragment : DialogFragment() {
      * Function for fetching the weather data and storing it in the variables.
      */
     private fun getWeatherData(url: String) {
+
         // Read data and put in a string.
         val apiResponse = URL(url).readText()
         // Parse to JSON
@@ -131,7 +183,7 @@ class WeatherFragment : DialogFragment() {
      */
     private fun showWeatherDialog(activity: Activity) {
         // Check if weather data was found.
-        if (weatherDescription != couldNotFind) {
+        if (weatherDescription != couldNotFind && weatherDescription != malformedUrl) {
 
             // Inflate the fragment.
             val alertDialog : AlertDialog

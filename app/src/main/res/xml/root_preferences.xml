@@ -7,9 +7,9 @@
         />
 
     <EditTextPreference
-        app:icon="@android:drawable/ic_menu_mapmode"
+        app:icon="@android:drawable/ic_menu_more"
+        app:iconSpaceReserved="false"
         app:key="download"
-        app:title="@string/download_sites"
-        />
+        app:title="@string/download_sites" />
 
 </PreferenceScreen>

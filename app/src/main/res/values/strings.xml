@@ -57,5 +57,10 @@
     <string name="downloading">Downloading</string>
     <string name="adding_to_db">Now adding sites to database</string>
 
+    <string name="malformed_url">Could not access weather data from the provided URL.</string>
 
+    <string name="no_sites">There are no bathing sites in the database. Try downloading or adding some.</string>
+
+
+    <string name="address_hint">\"Town\", \"Street, Town\" or \"Site, Town\"</string>
 </resources>

@@ -5,12 +5,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
  * Custom class BathingSiteView, contains an image and a increasable counter.
  */
+@OptIn(DelicateCoroutinesApi::class)
 @SuppressLint("SetTextI18n")
 class BathingSitesView(
     context: Context, attrs: AttributeSet?
@@ -39,7 +41,6 @@ class BathingSitesView(
                 attributes.recycle()
             }
         }
-
 
         GlobalScope.launch {
             appDatabase = AppDatabase.getDatabase(context)
