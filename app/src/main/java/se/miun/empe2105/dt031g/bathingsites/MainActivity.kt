@@ -39,6 +39,14 @@ class MainActivity : AppCompatActivity() {
             dlEditor?.putString("dlValue", getString(R.string.default_download_url))
             dlEditor?.apply()
         }
+
+        // Set default maps radius.
+        val mapsPreferences = getSharedPreferences("maps", Context.MODE_PRIVATE)
+        val mapsEditor = mapsPreferences?.edit()
+        if (mapsPreferences?.getString("mapsValue", "").isNullOrBlank()) {
+            mapsEditor?.putString("mapsValue", getString(R.string.default_map_radius))
+            mapsEditor?.apply()
+        }
     }
 
     /**
@@ -55,8 +63,6 @@ class MainActivity : AppCompatActivity() {
         // in AddBathingSiteActivity and the user is taken back to the MainActivity).
         bathingView.showCount()
     }
-
-
 
     /**
      * Inflate the overflow menu.
@@ -76,6 +82,9 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.main_download -> {
                 startActivity(Intent(this, DownloadActivity::class.java))
+            }
+            R.id.main_map -> {
+                startActivity(Intent(this, MapsActivity::class.java))
             }
         }
         return super.onOptionsItemSelected(item)

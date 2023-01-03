@@ -12,4 +12,10 @@
         app:key="download"
         app:title="@string/download_sites" />
 
+    <EditTextPreference
+        app:icon="@android:drawable/ic_menu_compass"
+        app:iconSpaceReserved="false"
+        app:key="maps"
+        app:title="@string/map_radius" />
+
 </PreferenceScreen>

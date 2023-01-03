@@ -64,6 +64,24 @@ class SettingsActivity : AppCompatActivity() {
                 dlEditor?.putString("dlValue", newValue.toString())?.apply()
                 true
             }
+
+
+            // Download sites set-up.
+            val mapsPreferences = activity?.getSharedPreferences("maps", Context.MODE_PRIVATE)
+            val mapsEditor = mapsPreferences?.edit()
+
+            // Set the summary text.
+            val mapsPref = findPreference("maps") as EditTextPreference?
+            mapsPref?.summary = mapsPreferences?.getString("mapsValue", "")
+
+            // Change summary text and value when the user changes the preference.
+            mapsPref?.setOnPreferenceChangeListener { _, newValue ->
+                mapsPref.summary = newValue.toString()
+
+                mapsEditor?.clear()?.apply()
+                mapsEditor?.putString("mapsValue", newValue.toString())?.apply()
+                true
+            }
         }
     }
 }

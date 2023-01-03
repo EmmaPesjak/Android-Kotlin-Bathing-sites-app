@@ -9,4 +9,8 @@
         android:title="@string/download"
         android:id="@+id/main_download"
         />
+    <item
+        android:title="@string/map"
+        android:id="@+id/main_map"
+        />
 </menu>
