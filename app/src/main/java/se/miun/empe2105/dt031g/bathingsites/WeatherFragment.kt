@@ -27,7 +27,7 @@ class WeatherFragment : DialogFragment() {
     private lateinit var weatherDescription: String
     private lateinit var imageUrl: String
     private lateinit var couldNotFind: String
-    private lateinit var malformedUrl: String
+    private lateinit var badUrl: String
     private lateinit var celsius: String
     private lateinit var png: String
 
@@ -45,7 +45,7 @@ class WeatherFragment : DialogFragment() {
 
         // Get strings from the activity, these are used later.
         couldNotFind = activity.resources.getString(R.string.could_not_find)
-        malformedUrl = activity.resources.getString(R.string.malformed_url)
+        badUrl = activity.resources.getString(R.string.bad_url)
         imageUrl = activity.resources.getString(R.string.image_url)
         celsius = activity.resources.getString(R.string.celsius)
         png = activity.resources.getString(R.string.png)
@@ -73,7 +73,7 @@ class WeatherFragment : DialogFragment() {
                                 when(e) {
                                     is MalformedURLException,
                                         is FileNotFoundException -> {
-                                        weatherDescription = malformedUrl
+                                        weatherDescription = badUrl
                                         // Dismiss the progress dialog, this also triggers displaying the error.
                                         progressDialog.dismiss()
                                     }
@@ -102,7 +102,7 @@ class WeatherFragment : DialogFragment() {
                                 when (e) {
                                     is MalformedURLException,
                                     is FileNotFoundException -> {
-                                        weatherDescription = malformedUrl
+                                        weatherDescription = badUrl
                                         // Dismiss the progress dialog, this also triggers displaying the error.
                                         progressDialog.dismiss()
                                     }
@@ -183,7 +183,7 @@ class WeatherFragment : DialogFragment() {
      */
     private fun showWeatherDialog(activity: Activity) {
         // Check if weather data was found.
-        if (weatherDescription != couldNotFind && weatherDescription != malformedUrl) {
+        if (weatherDescription != couldNotFind && weatherDescription != badUrl) {
 
             // Inflate the fragment.
             val alertDialog : AlertDialog

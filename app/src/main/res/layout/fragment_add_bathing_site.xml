@@ -15,7 +15,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:isScrollContainer="true"
+        android:layout_margin="5dp"
         tools:context=".AddBathingSiteFragment">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.0" />
 
         <TextView
             android:id="@+id/text_name"
@@ -75,37 +83,43 @@
 
         <TextView
             android:id="@+id/text_longitude"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            app:layout_constraintWidth_percent="0.50"
             app:layout_constraintTop_toBottomOf="@id/address"
+            app:layout_constraintEnd_toStartOf="@id/text_latitude"
             android:text="@string/longitude" />
 
         <EditText
             android:id="@+id/longitude"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:inputType="numberDecimal"
+            app:layout_constraintWidth_percent="0.50"
             android:minHeight="48dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/latitude"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_longitude"
             tools:ignore="SpeakableTextPresentCheck" />
 
         <TextView
             android:id="@+id/text_latitude"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            app:layout_constraintTop_toBottomOf="@id/longitude"
+            app:layout_constraintWidth_percent="0.50"
+            app:layout_constraintTop_toBottomOf="@id/address"
+            app:layout_constraintEnd_toStartOf="@id/text_longitude"
             android:text="@string/latitude" />
 
         <EditText
             android:id="@+id/latitude"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:inputType="numberDecimal"
+            app:layout_constraintWidth_percent="0.50"
             android:minHeight="48dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/longitude"
             app:layout_constraintTop_toBottomOf="@id/text_latitude"
             tools:ignore="SpeakableTextPresentCheck" />
 
@@ -131,37 +145,43 @@
 
         <TextView
             android:id="@+id/text_water_temp"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             app:layout_constraintTop_toBottomOf="@id/rating_bar"
+            app:layout_constraintEnd_toStartOf="@id/text_date_water"
+            app:layout_constraintWidth_percent="0.50"
             android:text="@string/water_temp" />
 
         <EditText
             android:id="@+id/water_temp"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            app:layout_constraintWidth_percent="0.50"
             android:layout_height="match_parent"
             android:inputType="numberDecimal"
             android:minHeight="48dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/date_water"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/text_water_temp"
             tools:ignore="SpeakableTextPresentCheck" />
 
         <TextView
             android:id="@+id/text_date_water"
-            android:layout_width="match_parent"
+            app:layout_constraintWidth_percent="0.50"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            app:layout_constraintTop_toBottomOf="@id/water_temp"
+            app:layout_constraintTop_toBottomOf="@id/rating_bar"
+            app:layout_constraintStart_toEndOf="@id/text_water_temp"
             android:text="@string/date_water" />
 
         <EditText
             android:id="@+id/date_water"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
+            app:layout_constraintWidth_percent="0.50"
             android:inputType="date"
             android:minHeight="48dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/water_temp"
             app:layout_constraintTop_toBottomOf="@id/text_date_water"
             tools:ignore="SpeakableTextPresentCheck" />
 
