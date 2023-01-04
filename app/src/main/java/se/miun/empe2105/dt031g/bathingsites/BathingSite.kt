@@ -12,8 +12,8 @@ data class BathingSite(
     @ColumnInfo(name = "name") val name: String?,
     @ColumnInfo(name = "description") val description: String?,
     @ColumnInfo(name = "address") val address: String?,
-    @ColumnInfo(name = "longitude") val longitude: Float?,
-    @ColumnInfo(name = "latitude") val latitude: Float?,
+    @ColumnInfo(name = "longitude") var longitude: Float?,
+    @ColumnInfo(name = "latitude") var latitude: Float?,
     @ColumnInfo(name = "grade") val grade: Float?,
     @ColumnInfo(name = "water_temp") val waterTemp: Float?,
     @ColumnInfo(name = "date_temp") val dateTemp: String?

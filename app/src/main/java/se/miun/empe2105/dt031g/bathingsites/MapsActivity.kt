@@ -3,6 +3,8 @@ package se.miun.empe2105.dt031g.bathingsites
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.view.Menu
@@ -22,7 +24,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import se.miun.empe2105.dt031g.bathingsites.databinding.ActivityMapsBinding
+import java.util.*
+import kotlin.math.roundToInt
 import kotlin.properties.Delegates
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -34,7 +39,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     //https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#5 mycket från denna
 
-    private lateinit var currentLocation : Location
+    //private lateinit var currentLocation : Location
     private lateinit var lastLocation : Location
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
@@ -120,6 +125,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
 
 
+        //https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#8
         var circle: Circle? = null
         circle?.remove()
         circle = radiusMeters?.let {
@@ -151,7 +157,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         GlobalScope.launch(Dispatchers.Main) {
             bathingSites.forEach {
 
-                //de som bara har adresser??
+                // Get coordinates for bathing sites that only have an address. https://stackoverflow.com/questions/9698328/how-to-get-coordinates-of-an-address-in-android
+                if (it.latitude == null || it.longitude == null) {
+
+                    val geocoder = Geocoder(this@MapsActivity, Locale.getDefault())
+                    val addresses: List<Address>? =
+                        it.address?.let { it1 -> geocoder.getFromLocationName(it1, 1) }
+
+                    if (addresses != null) {
+                        if (addresses.isNotEmpty()) {
+                            val latitude = addresses[0].latitude
+                            val longitude = addresses[0].longitude
+
+                            it.latitude = latitude.toFloat()
+                            it.longitude = longitude.toFloat()
+                        }
+                    }
+                }
 
                 // Make a latLong of the coordinates from the bathing site.
                 val latLngSite = it.latitude?.let { it1 -> it.longitude?.let { it2 -> LatLng(it1.toDouble(), it2.toDouble()) } }
@@ -170,14 +192,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 // Only display bathing sites within the set radius.
                 if (distance[0] < radius) {
 
+                    // Round the distance and convert to kilometers.
+                    val roundedDistance = distance[0].roundToInt() / 1000
+
                     // Create the text with info about the bathing site.
                     val snippetText = getString(R.string.name) + it.name + getString(
-                        R.string.description) + (it.description ?: "") +
+                        R.string.description
+                    ) + (it.description ?: "") +
                             getString(R.string.address) + (it.address ?: "") + getString(
-                        R.string.longitude) + (it.longitude ?: "") +
+                        R.string.longitude
+                    ) + (it.longitude ?: "") +
                             getString(R.string.latitude) + (it.latitude ?: "") + getString(
-                        R.string.grade) + (it.grade ?: "") + getString(R.string.water_temp) +
-                            (it.waterTemp ?: "") + getString(R.string.date_water) + (it.dateTemp ?: "")
+                        R.string.grade
+                    ) + (it.grade ?: "") + getString(R.string.water_temp) +
+                            (it.waterTemp ?: "") + getString(R.string.date_water) + (it.dateTemp ?: "") +
+                            getString(R.string.distance) + roundedDistance + getString(R.string.kilometer)
 
                     // In order to fit all text in the snippet, a custom info window is needed.
                     mMap.setInfoWindowAdapter(CustomInfoWindowAdapter(this@MapsActivity))

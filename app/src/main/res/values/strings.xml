@@ -21,6 +21,8 @@
     <string name="grade">\nGrade:\u0020</string>
     <string name="water_temp">\nWater temp:\u0020</string>
     <string name="date_water">\nDate for temp:\u0020</string>
+    <string name="distance">\nDistance:\u0020</string>
+    <string name="kilometer">km</string>
 
     <string name="ok">OK</string>
 
