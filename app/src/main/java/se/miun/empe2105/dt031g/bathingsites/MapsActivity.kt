@@ -1,17 +1,17 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import se.miun.empe2105.dt031g.bathingsites.databinding.ActivityMapsBinding
+import kotlin.properties.Delegates
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
@@ -29,7 +30,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var binding: ActivityMapsBinding
 
 
-    //https://www.youtube.com/watch?v=PtZe-0aJ4f0 nä den blev inte bra
     //https://www.youtube.com/watch?v=FotQIcC91V4 denna fungerade ish
 
     //https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#5 mycket från denna
@@ -37,7 +37,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var currentLocation : Location
     private lateinit var lastLocation : Location
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    //private val permissionCode = 101
+
+    private var radius by Delegates.notNull<Double>()
+
 
     private lateinit var appDatabase: AppDatabase
 
@@ -60,63 +62,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
-
-
         appDatabase = AppDatabase.getDatabase(this)
-
-
-        //getCurrentLocationUser()
     }
-
-//    private fun getCurrentLocationUser() {
-//        if (ActivityCompat.checkSelfPermission(
-//                this, android.Manifest.permission.ACCESS_FINE_LOCATION) !=
-//                    PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                this, android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
-//                    PackageManager.PERMISSION_GRANTED) {
-//                        ActivityCompat.requestPermissions(
-//                            this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-//                        permissionCode)
-//            return
-//        }
-//
-//        val getLocation = fusedLocationProviderClient.lastLocation.addOnSuccessListener {
-//
-//            location ->
-//
-//            if(location != null) {
-//
-//                println(location.latitude)
-//                currentLocation = location
-//
-//                Toast.makeText(applicationContext, currentLocation.latitude.toString() + " " +
-//                currentLocation.longitude.toString(), Toast.LENGTH_LONG).show()
-//
-//                val mapFragment = supportFragmentManager
-//                    .findFragmentById(R.id.map) as SupportMapFragment
-//                mapFragment.getMapAsync(this)
-//            }
-//        }
-//    }
-
-
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//
-//        when (requestCode) {
-//
-//            permissionCode -> if(grantResults.isNotEmpty() && grantResults[0] ==
-//                    PackageManager.PERMISSION_GRANTED) {
-//                getCurrentLocationUser()
-//            }
-//        }
-//    }
-
-
 
     /**
      * Manipulates the map once available.
@@ -129,33 +76,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-//
-//        // Add a marker in Sydney and move the camera
-//        val tormestorp = LatLng(56.1111, 13.7431)  // Awesome people live here.
-//        mMap.addMarker(MarkerOptions().position(tormestorp).title("Marker in Tormestorp"))
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(tormestorp))
-
-
-        //Detta är bara för att det ska fungera, hämtar inte current location...
-//        val location = Location("")
-//        location.longitude= 13.7431
-//        location.latitude = 56.1111
-//        currentLocation = location
-
-
         mMap.uiSettings.isZoomControlsEnabled = true
-
-
         mMap.setOnMarkerClickListener(this)
         setUpMap()
-
-
-//        val latLng = LatLng(currentLocation.latitude, currentLocation.longitude)
-//        val markerOptions = MarkerOptions().position(latLng).title("Current location")
-//
-//        mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
-//        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 7f))
-//        mMap.addMarker(markerOptions)
     }
 
 
@@ -165,11 +88,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
-
-//            && ActivityCompat.checkSelfPermission(
-//                this,
-//                android.Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_REQUEST_CODE
             )
@@ -178,79 +96,108 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
         mMap.isMyLocationEnabled = true
 
-
         fusedLocationProviderClient.lastLocation.addOnSuccessListener(this) {
 
             if (it != null) {
                 lastLocation = it
                 val currentLatLong = LatLng(it.latitude, it.longitude)
-                placeMarkerOnMap(currentLatLong)
+                makeRadiusAndGetSites(currentLatLong)
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLong, 8f))
             }
         }
     }
 
-    private fun placeMarkerOnMap(currentLatLong: LatLng) {
-
-        //här sätts en marker på current location men det behövs ju inte...
-        val markerOptions = MarkerOptions().position(currentLatLong)
-        markerOptions.title("$currentLatLong")
-        mMap.addMarker(markerOptions)
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun makeRadiusAndGetSites(currentLatLong: LatLng) {
 
 
+        // Get the url from settings.
+        val preferences = getSharedPreferences("maps", Context.MODE_PRIVATE)
+        val radiuskm = preferences.getString("mapsValue", "")?.toDouble()
+        val radiusMeters = radiuskm?.times(1000)
+        if (radiusMeters != null) {
+            radius = radiusMeters
+        }
 
-        // Add circle får väl in i egen fun
+
         var circle: Circle? = null
         circle?.remove()
-        circle = mMap.addCircle(
+        circle = radiusMeters?.let {
             CircleOptions()
                 .center(currentLatLong)
-                .radius(50000.0)  //här ska ju settingsvärdet in
+                .radius(it)  //här ska ju settingsvärdet in
                 .fillColor(ContextCompat.getColor(this, R.color.transparent_purple))
                 .strokeColor(ContextCompat.getColor(this, R.color.purple_700))
-        )
+        }?.let {
+            mMap.addCircle(
+                it
+            )
+        }
 
-        //detta får väl också in i en egen fun (hämta från db)
-        readData()
-    }
-
-    /**
-     * Method for reading data from the database. (Samma som i showbathingsiteactivity)
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun readData() {
+        // Get the bathing sites from the database.
         lateinit var bathingSites: List<BathingSite>
         // Reading can take time, do it in a coroutine.
         GlobalScope.launch {
             bathingSites = appDatabase.bathingSiteDao().getAllSites()
-
-
-            displaySites(bathingSites)
+            displaySites(bathingSites, currentLatLong)
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun displaySites(bathingSites: List<BathingSite>) {
 
+    @OptIn(DelicateCoroutinesApi::class)
+    fun displaySites(bathingSites: List<BathingSite>, currentLatLong: LatLng) {
+
+        // Dispatch on main.
         GlobalScope.launch(Dispatchers.Main) {
             bathingSites.forEach {
 
-                val latLng = it.latitude?.let { it1 -> it.longitude?.let { it2 -> LatLng(it1.toDouble(), it2.toDouble()) } }
-                val marker = latLng?.let { it1 ->
-                    MarkerOptions()
-                        .title(it.name)
-                        .snippet(it.address)
-                        .position(it1)
-                }?.let { it2 ->
-                    mMap.addMarker(
-                        it2
-                    )
+                //de som bara har adresser??
+
+                // Make a latLong of the coordinates from the bathing site.
+                val latLngSite = it.latitude?.let { it1 -> it.longitude?.let { it2 -> LatLng(it1.toDouble(), it2.toDouble()) } }
+
+                // Calculate the distance between the site and the current location.
+                // https://developers.google.com/maps/documentation/android-sdk/utility
+                val distance = FloatArray(1)
+                latLngSite?.latitude?.let { it1 ->
+                    latLngSite.longitude.let { it2 ->
+                        Location.distanceBetween(currentLatLong.latitude, currentLatLong.longitude,
+                            it1, it2, distance
+                        )
+                    }
+                }
+
+                // Only display bathing sites within the set radius.
+                if (distance[0] < radius) {
+
+                    // Create the text with info about the bathing site.
+                    val snippetText = getString(R.string.name) + it.name + getString(
+                        R.string.description) + (it.description ?: "") +
+                            getString(R.string.address) + (it.address ?: "") + getString(
+                        R.string.longitude) + (it.longitude ?: "") +
+                            getString(R.string.latitude) + (it.latitude ?: "") + getString(
+                        R.string.grade) + (it.grade ?: "") + getString(R.string.water_temp) +
+                            (it.waterTemp ?: "") + getString(R.string.date_water) + (it.dateTemp ?: "")
+
+                    // In order to fit all text in the snippet, a custom info window is needed.
+                    mMap.setInfoWindowAdapter(CustomInfoWindowAdapter(this@MapsActivity))
+
+                    // Make the marker.
+                    latLngSite?.let { it1 ->
+                        MarkerOptions()
+                            .title(it.name)
+                            .snippet(snippetText)
+                            .position(it1)
+                    }?.let { it2 ->
+                        mMap.addMarker(
+                            it2
+                        )
+                    }
                 }
             }
         }
 
     }
-
 
     /**
      * Inflate the overflow menu.

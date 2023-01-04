@@ -13,7 +13,7 @@
     <string name="required_place">Address and/or coordinates are required</string>
 
     <!-- Bathing site details -->
-    <string name="name">\nName:\u0020</string>
+    <string name="name">Name:\u0020</string>
     <string name="description">\nDescription:\u0020</string>
     <string name="address">\nAddress:\u0020</string>
     <string name="longitude">\nLongitude:\u0020</string>
