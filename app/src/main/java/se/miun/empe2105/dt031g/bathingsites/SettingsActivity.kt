@@ -2,9 +2,11 @@ package se.miun.empe2105.dt031g.bathingsites
 
 import android.content.Context
 import android.os.Bundle
+import android.text.InputType
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.EditTextPreference
 import androidx.preference.PreferenceFragmentCompat
+
 
 /**
  * Settings class.
@@ -66,7 +68,7 @@ class SettingsActivity : AppCompatActivity() {
             }
 
 
-            // Download sites set-up.
+            // Maps set-up.
             val mapsPreferences = activity?.getSharedPreferences("maps", Context.MODE_PRIVATE)
             val mapsEditor = mapsPreferences?.edit()
 
@@ -81,6 +83,12 @@ class SettingsActivity : AppCompatActivity() {
                 mapsEditor?.clear()?.apply()
                 mapsEditor?.putString("mapsValue", newValue.toString())?.apply()
                 true
+            }
+
+            //https://stackoverflow.com/questions/53446825/edittextpreference-not-showing-numeric-keyboard-after-migrating-project-to-andro
+            // Make sure only numbers can be entered for the maps radius.
+            mapsPref?.setOnBindEditTextListener { editText ->
+                editText.inputType = InputType.TYPE_CLASS_NUMBER
             }
         }
     }

@@ -169,7 +169,9 @@ class WeatherFragment : DialogFragment() {
             val finishedImgUrl = imageUrl + icon + png
             val stream = URL(finishedImgUrl).openStream()
             val drawable = Drawable.createFromStream(stream, "src")
-            weatherIcon = drawable
+            if (drawable != null) {
+                weatherIcon = drawable
+            }
         } else { // Else set the description to could not find.
             weatherDescription = couldNotFind
         }

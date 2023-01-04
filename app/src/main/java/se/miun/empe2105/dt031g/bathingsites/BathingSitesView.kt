@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -61,11 +62,19 @@ class BathingSitesView(
         showCount()
     }
 
+    /**
+     * Function for displaying the number of bathing sites in the main activity.
+     */
     fun showCount() {
-        val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
-        val counterText = resources.getString(R.string.counter_text)
-        nmb.text = "$count $counterText"
-        invalidate()
-        requestLayout()
+
+        // Ensure launching on main to avoid crashing when starting the app.
+        GlobalScope.launch(Dispatchers.Main){
+            val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
+            val counterText = resources.getString(R.string.counter_text)
+            nmb.text = "$count $counterText"
+            invalidate()
+            requestLayout()
+        }
+
     }
 }

@@ -46,8 +46,8 @@
     <string name="default_address">https://dt031g.programvaruteknik.nu/bathingsites/weather.php</string>
     <string name="download_sites">Download bathing sites from</string>
     <string name="default_download_url">https://dt031g.programvaruteknik.nu/bathingsites/download/</string>
-    <string name="map_radius">Map radius</string>
-    <string name="default_map_radius">50 km</string>
+    <string name="map_radius">Map radius (km)</string>
+    <string name="default_map_radius">50</string>
 
 
     <string name="image_url">https://openweathermap.org/img/w/</string>
