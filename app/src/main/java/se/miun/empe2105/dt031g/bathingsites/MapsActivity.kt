@@ -1,5 +1,6 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,8 +13,7 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -28,31 +28,25 @@ import java.util.*
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-
+/**
+ * Maps activity class. Tracks the users location (if permitted) and shows bathing sites
+ * within the radius stated in the settings.
+ * https://www.youtube.com/watch?v=FotQIcC91V4
+ * https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#5
+ * https://stackoverflow.com/questions/16853182/android-how-to-remove-all-markers-from-google-map-v2
+ * https://developers.google.com/android/reference/com/google/android/gms/location/LocationRequest
+ * https://developers.google.com/android/reference/com/google/android/gms/location/LocationCallback
+ */
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-
-
-    //https://www.youtube.com/watch?v=FotQIcC91V4 denna fungerade ish
-
-    //https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#5 mycket från denna
-
-    //private lateinit var currentLocation : Location
-    private lateinit var lastLocation : Location
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-
-    private var radius by Delegates.notNull<Double>()
-
-
     private lateinit var appDatabase: AppDatabase
-
-    //vet inte varför detta är i ett companion obj
-    companion object {
-        private const val LOCATION_REQUEST_CODE = 1
-    }
-
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var radius by Delegates.notNull<Double>()
+    private val locationRequestCode = 1
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,16 +59,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        // Get the location provider and the database with bathing sites.
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
         appDatabase = AppDatabase.getDatabase(this)
+        
+        // Start location updates.
+        getLocationUpdates()
     }
 
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
      * If Google Play services is not installed on the device, the user will be prompted to install
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
@@ -83,55 +78,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.setOnMarkerClickListener(this)
-        setUpMap()
-    }
 
-
-    private fun setUpMap() {
-
+        // Show the units location and add locate me button, check permissions first.
         if (ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_REQUEST_CODE
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationRequestCode
             )
-
             return
         }
         mMap.isMyLocationEnabled = true
-
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener(this) {
-
-            if (it != null) {
-                lastLocation = it
-                val currentLatLong = LatLng(it.latitude, it.longitude)
-                makeRadiusAndGetSites(currentLatLong)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLong, 8f))
-            }
-        }
     }
+
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun makeRadiusAndGetSites(currentLatLong: LatLng) {
 
-
-        // Get the url from settings.
+        // Get the radius from settings.
         val preferences = getSharedPreferences("maps", Context.MODE_PRIVATE)
-        val radiuskm = preferences.getString("mapsValue", "")?.toDouble()
-        val radiusMeters = radiuskm?.times(1000)
+        val radiusKilometers = preferences.getString("mapsValue", "")?.toDouble()
+        val radiusMeters = radiusKilometers?.times(1000)
         if (radiusMeters != null) {
             radius = radiusMeters
         }
 
-
-        //https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#8
-        var circle: Circle? = null
-        circle?.remove()
-        circle = radiusMeters?.let {
+        //make circle https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#8
+        radiusMeters?.let {
             CircleOptions()
                 .center(currentLatLong)
-                .radius(it)  //här ska ju settingsvärdet in
+                .radius(it)
                 .fillColor(ContextCompat.getColor(this, R.color.transparent_purple))
                 .strokeColor(ContextCompat.getColor(this, R.color.purple_700))
         }?.let {
@@ -225,7 +205,77 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
             }
         }
+    }
 
+    private fun getLocationUpdates() {
+        locationRequest = LocationRequest()
+        locationRequest.interval = 2000
+        locationRequest.fastestInterval = 2000
+        locationRequest.smallestDisplacement = 170f // 170 m = 0.1 mile
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY //set according to your app function
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                if (locationResult.locations.isNotEmpty()) {
+                    // get latest location
+                    val location =
+                        locationResult.lastLocation
+
+                    val newLatLng = location?.let { LatLng(it.latitude, location.longitude) }
+
+                    newLatLng?.let { CameraUpdateFactory.newLatLngZoom(it, 8f) }
+                        ?.let { mMap.animateCamera(it) }
+
+                    if (newLatLng != null) {
+
+                        //clear map first
+                        mMap.clear()
+
+                        makeRadiusAndGetSites(newLatLng)
+                    }
+                }
+            }
+        }
+    }
+
+    //start location updates
+    private fun startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationRequestCode
+            )
+            return
+        }
+
+        fusedLocationProviderClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            null // Looper
+        )
+    }
+
+    /**
+     * Stop the location updates.
+     */
+    private fun stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+    }
+
+    // stop receiving location update when activity not visible/foreground
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
+    }
+
+    // start receiving location update when activity  visible/foreground
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
     }
 
     /**
