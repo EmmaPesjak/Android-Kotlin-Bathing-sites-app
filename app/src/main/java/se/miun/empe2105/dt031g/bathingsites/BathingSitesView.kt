@@ -43,6 +43,8 @@ class BathingSitesView(
             }
         }
 
+        // Get the amount of bathing sites from the database,
+        // launch in coroutine since it can be time consuming.
         GlobalScope.launch {
             appDatabase = AppDatabase.getDatabase(context)
             count = appDatabase.bathingSiteDao().getAmount()
@@ -53,28 +55,16 @@ class BathingSitesView(
     }
 
     /**
-     * Public method fot increasing the count of bathing sites.
-     */
-    fun increaseCount() {
-        // Increase count.
-        count += 1
-        // Update text.
-        showCount()
-    }
-
-    /**
      * Function for displaying the number of bathing sites in the main activity.
      */
     fun showCount() {
-
-        // Ensure launching on main to avoid crashing when starting the app.
-        GlobalScope.launch(Dispatchers.Main){
+        // Ensure launching on the main thread to avoid crashing when starting the app.
+        GlobalScope.launch(Dispatchers.Main) {
             val nmb = findViewById<TextView>(R.id.bathing_site_nmb)
             val counterText = resources.getString(R.string.counter_text)
             nmb.text = "$count $counterText"
             invalidate()
             requestLayout()
         }
-
     }
 }

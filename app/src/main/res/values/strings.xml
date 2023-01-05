@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">Bathing Sites</string>
-
-
     <string name="settings">Settings</string>
     <string name="download">Download</string>
     <string name="map">Map</string>
@@ -11,6 +9,28 @@
     <string name="show_weather">Show Weather</string>
     <string name="required_name">Name is required.</string>
     <string name="required_place">Address and/or coordinates are required</string>
+    <string name="ok">OK</string>
+    <string name="fab">Floating action button</string>
+    <string name="counter_text">bathing sites</string>
+    <string name="title_activity_add_bathing_site">Add bathing site</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_download">Download</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_show_saved_bathing_sites">Saved bathing sites</string>
+    <string name="getting_current_weather">Getting current weather…</string>
+    <string name="current_weather">Current weather</string>
+    <string name="site_added">Site added.</string>
+    <string name="not_unique">Bathing site with the same coordinates already exists.</string>
+    <string name="image_url">https://openweathermap.org/img/w/</string>
+    <string name="could_not_find">Could not find address/coordinates</string>
+    <string name="celsius">℃</string>
+    <string name="png">.png</string>
+    <string name="downloading">Downloading</string>
+    <string name="adding_to_db">Now adding sites to database</string>
+    <string name="bad_url">Could not access weather data from the provided URL.</string>
+    <string name="no_address_or_coords">This should never happen, someone tried searching weather without address/coordinates</string>
+    <string name="no_sites">There are no bathing sites in the database. Try downloading or adding some.</string>
+    <string name="address_hint">\"Town\", \"Street, Town\" or \"Site, Town\"</string>
 
     <!-- Bathing site details -->
     <string name="name">Name:\u0020</string>
@@ -24,26 +44,7 @@
     <string name="distance">\nDistance:\u0020</string>
     <string name="kilometer">km</string>
 
-    <string name="ok">OK</string>
-
-    <string name="fab">Floating action button</string>
-
-    <string name="counter_text">bathing sites</string>
-
-    <string name="title_activity_add_bathing_site">Add bathing site</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_download">Download</string>
-    <string name="title_activity_map">Map</string>
-    <string name="title_activity_show_saved_bathing_sites">Saved bathing sites</string>
-    <string name="getting_current_weather">Getting current weather…</string>
-    <string name="current_weather">Current weather</string>
-
-
-    <string name="site_added">Site added.</string>
-    <string name="not_unique">Bathing site with the same coordinates already exists.</string>
-
-
-    <!-- Messages Preferences -->
+    <!-- Preferences -->
     <string name="fetch_weather">Fetch weather data from</string>
     <string name="default_address">https://dt031g.programvaruteknik.nu/bathingsites/weather.php</string>
     <string name="download_sites">Download bathing sites from</string>
@@ -51,21 +52,4 @@
     <string name="map_radius">Map radius (km)</string>
     <string name="default_map_radius">50</string>
 
-
-    <string name="image_url">https://openweathermap.org/img/w/</string>
-    <string name="could_not_find">Could not find address/coordinates</string>
-    <string name="celsius">℃</string>
-    <string name="png">.png</string>
-
-
-    <string name="downloading">Downloading</string>
-    <string name="adding_to_db">Now adding sites to database</string>
-
-    <string name="bad_url">Could not access weather data from the provided URL.</string>
-
-    <string name="no_sites">There are no bathing sites in the database. Try downloading or adding some.</string>
-
-
-    <string name="address_hint">\"Town\", \"Street, Town\" or \"Site, Town\"</string>
-    <string name="title_activity_maps">MapsActivity</string>
 </resources>

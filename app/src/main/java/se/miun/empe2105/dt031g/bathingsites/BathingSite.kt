@@ -4,8 +4,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Schema of the db  https://developer.android.com/training/data-storage/room
-// https://www.youtube.com/watch?v=NS7yYdW3Lho
+/** Schema of a bathing site.
+ * https://developer.android.com/training/data-storage/room
+ * https://www.youtube.com/watch?v=NS7yYdW3Lho
+ */
 @Entity(tableName = "bathing_sites")
 data class BathingSite(
     @PrimaryKey(autoGenerate = true) val id:Int?,

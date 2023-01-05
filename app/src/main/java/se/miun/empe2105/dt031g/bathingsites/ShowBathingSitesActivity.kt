@@ -18,7 +18,6 @@ import kotlinx.coroutines.*
 class ShowBathingSitesActivity : AppCompatActivity() {
 
     private lateinit var appDatabase: AppDatabase
-
     private var context: Context = this
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -44,7 +44,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     private lateinit var appDatabase: AppDatabase
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var radius by Delegates.notNull<Double>()
-    private val locationRequestCode = 1
+    private val LOCATION_REQUEST_CODE = 1
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
 
@@ -62,7 +62,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         // Get the location provider and the database with bathing sites.
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         appDatabase = AppDatabase.getDatabase(this)
-        
+
         // Start location updates.
         getLocationUpdates()
     }
@@ -88,26 +88,62 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationRequestCode
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_REQUEST_CODE
             )
             return
         }
         mMap.isMyLocationEnabled = true
     }
 
+    /**
+     * Method for getting location updates using location requests. Updates the map
+     * if a new location is received.
+     */
+    private fun getLocationUpdates() {
+        locationRequest = LocationRequest()
+        locationRequest.interval = 2000
+        locationRequest.fastestInterval = 2000
+        locationRequest.smallestDisplacement = 200f // 200 meters.
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                if (locationResult.locations.isNotEmpty()) {
+                    // Get the latest location.
+                    val location = locationResult.lastLocation
+                    // Convert to a latLng.
+                    val newLatLng = location?.let { LatLng(it.latitude, location.longitude) }
+                    // Zoom in on the new location on the map.
+                    newLatLng?.let { CameraUpdateFactory.newLatLngZoom(it, 8f) }
+                        ?.let { mMap.animateCamera(it) }
 
+                    if (newLatLng != null) {
+                        // Clear the map first from old locations and radius.
+                        mMap.clear()
+                        // Update the map.
+                        makeRadiusAndGetSites(newLatLng)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates the radius circle and gets all bathing sites from the database.
+     */
     @OptIn(DelicateCoroutinesApi::class)
     private fun makeRadiusAndGetSites(currentLatLong: LatLng) {
 
         // Get the radius from settings.
         val preferences = getSharedPreferences("maps", Context.MODE_PRIVATE)
         val radiusKilometers = preferences.getString("mapsValue", "")?.toDouble()
+        // Convert to meters.
         val radiusMeters = radiusKilometers?.times(1000)
         if (radiusMeters != null) {
             radius = radiusMeters
         }
 
-        //make circle https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#8
+        // Make the circle https://developers.google.com/codelabs/maps-platform/maps-platform-101-android#8
         radiusMeters?.let {
             CircleOptions()
                 .center(currentLatLong)
@@ -129,7 +165,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
     }
 
-
+    /**
+     * Display the bathing sites on the map with markers.
+     */
     @OptIn(DelicateCoroutinesApi::class)
     fun displaySites(bathingSites: List<BathingSite>, currentLatLong: LatLng) {
 
@@ -137,7 +175,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         GlobalScope.launch(Dispatchers.Main) {
             bathingSites.forEach {
 
-                // Get coordinates for bathing sites that only have an address. https://stackoverflow.com/questions/9698328/how-to-get-coordinates-of-an-address-in-android
+                // Get coordinates for bathing sites that only have an address.
+                // https://stackoverflow.com/questions/9698328/how-to-get-coordinates-of-an-address-in-android
                 if (it.latitude == null || it.longitude == null) {
 
                     val geocoder = Geocoder(this@MapsActivity, Locale.getDefault())
@@ -148,7 +187,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                         if (addresses.isNotEmpty()) {
                             val latitude = addresses[0].latitude
                             val longitude = addresses[0].longitude
-
                             it.latitude = latitude.toFloat()
                             it.longitude = longitude.toFloat()
                         }
@@ -156,7 +194,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
 
                 // Make a latLong of the coordinates from the bathing site.
-                val latLngSite = it.latitude?.let { it1 -> it.longitude?.let { it2 -> LatLng(it1.toDouble(), it2.toDouble()) } }
+                val latLngSite = it.latitude?.let { it1 -> it.longitude?.let {
+                        it2 -> LatLng(it1.toDouble(), it2.toDouble()) } }
 
                 // Calculate the distance between the site and the current location.
                 // https://developers.google.com/maps/documentation/android-sdk/utility
@@ -172,10 +211,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 // Only display bathing sites within the set radius.
                 if (distance[0] < radius) {
 
+                    // Create the text with info about the bathing site.
                     // Round the distance and convert to kilometers.
                     val roundedDistance = distance[0].roundToInt() / 1000
-
-                    // Create the text with info about the bathing site.
                     val snippetText = getString(R.string.name) + it.name + getString(
                         R.string.description
                     ) + (it.description ?: "") +
@@ -185,13 +223,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                             getString(R.string.latitude) + (it.latitude ?: "") + getString(
                         R.string.grade
                     ) + (it.grade ?: "") + getString(R.string.water_temp) +
-                            (it.waterTemp ?: "") + getString(R.string.date_water) + (it.dateTemp ?: "") +
-                            getString(R.string.distance) + roundedDistance + getString(R.string.kilometer)
+                            (it.waterTemp ?: "") + getString(R.string.date_water) +
+                            (it.dateTemp ?: "") + getString(R.string.distance) +
+                            roundedDistance + getString(R.string.kilometer)
 
                     // In order to fit all text in the snippet, a custom info window is needed.
                     mMap.setInfoWindowAdapter(CustomInfoWindowAdapter(this@MapsActivity))
 
-                    // Make the marker.
+                    // Make and add the marker.
                     latLngSite?.let { it1 ->
                         MarkerOptions()
                             .title(it.name)
@@ -207,37 +246,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         }
     }
 
-    private fun getLocationUpdates() {
-        locationRequest = LocationRequest()
-        locationRequest.interval = 2000
-        locationRequest.fastestInterval = 2000
-        locationRequest.smallestDisplacement = 170f // 170 m = 0.1 mile
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY //set according to your app function
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                if (locationResult.locations.isNotEmpty()) {
-                    // get latest location
-                    val location =
-                        locationResult.lastLocation
-
-                    val newLatLng = location?.let { LatLng(it.latitude, location.longitude) }
-
-                    newLatLng?.let { CameraUpdateFactory.newLatLngZoom(it, 8f) }
-                        ?.let { mMap.animateCamera(it) }
-
-                    if (newLatLng != null) {
-
-                        //clear map first
-                        mMap.clear()
-
-                        makeRadiusAndGetSites(newLatLng)
-                    }
-                }
-            }
-        }
-    }
-
-    //start location updates
+    /**
+     * Start location updates if permission is granted, otherwise ask for permission.
+     */
     private fun startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -247,15 +258,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), locationRequestCode
+            ActivityCompat.requestPermissions(this, arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_REQUEST_CODE
             )
             return
         }
-
         fusedLocationProviderClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
-            null // Looper
+            null
         )
     }
 
@@ -266,13 +277,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
-    // stop receiving location update when activity not visible/foreground
+    /**
+     * When on pause, location updates should stop.
+     */
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
     }
 
-    // start receiving location update when activity  visible/foreground
+    /**
+     * When resuming, start the location updates again.
+     */
     override fun onResume() {
         super.onResume()
         startLocationUpdates()

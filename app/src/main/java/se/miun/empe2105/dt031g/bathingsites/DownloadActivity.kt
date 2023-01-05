@@ -17,6 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import java.io.*
 
+/**
+ * Download activity class. Downloads bathing sites from a php-site and adds
+ * them to the database.
+ */
 class DownloadActivity : AppCompatActivity() {
 
     private var downloadId: Long? = null
@@ -32,12 +36,10 @@ class DownloadActivity : AppCompatActivity() {
 
         //set up the webView.
         val webView = findViewById<WebView>(R.id.webView)
-
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?
             ): Boolean { return false }
         }
-
         // Load the URL for the page. Get the url from settings.
         val preferences = getSharedPreferences("download", Context.MODE_PRIVATE)
         val url = preferences.getString("dlValue", "")
@@ -97,21 +99,20 @@ class DownloadActivity : AppCompatActivity() {
                             delay(100) // Tiny delay so the loop doesn't go crazy.
                         }
 
-                        // Download complete, add to database. Now change the text of the progressbar.
+                        // Download complete. Now change the text of the progressbar.
                         val progressBarText = findViewById<TextView>(R.id.progressbarText)
                         progressBarText.text = getString(R.string.adding_to_db)
 
+                        // Read from input stream.
                         val pathName = "" + Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_DOWNLOADS
                         ) + "/" + dirName
                         val downloadedFile = File(pathName)
-
-                        // Read from input stream.
                         val fileInputStream = FileInputStream(downloadedFile)
                         val inputStreamReader = InputStreamReader(fileInputStream)
                         val bufferedReader = BufferedReader(inputStreamReader)
 
-                        var text: String? = null
+                        var text: String?
                         while (run {
                                 text = bufferedReader.readLine()
                                 text
@@ -122,7 +123,7 @@ class DownloadActivity : AppCompatActivity() {
                                 ?.substringAfterLast('"') //ex 15.6746,62.1556
                             val longitude = coordinates?.substringBefore(",") // ex 15.6746
                             val latitude = coordinates?.substringAfter(",")     // ex 62.1556
-
+                            // Convert to floats.
                             val longitudeFloat = longitude?.toFloat()
                             val latitudeFloat = latitude?.toFloat()
                             // Check if the coordinates are unique.
@@ -154,13 +155,13 @@ class DownloadActivity : AppCompatActivity() {
                                     longitudeFloat, latitudeFloat,
                                     null, null, null
                                 )
-                                // Add to db.
+                                // Add to the database.
                                 appDatabase.bathingSiteDao().insert(bathingSite)
                                 // Increase the count of bathing sites.
                                 BathingSitesView.count += 1
                             }
                         }
-                        // Close the inputstream.
+                        // Close the input stream.
                         withContext(Dispatchers.IO) {
                             fileInputStream.close()
                         }
@@ -177,14 +178,18 @@ class DownloadActivity : AppCompatActivity() {
         }
     }
 
-    // Update the progressbar with the current progress.
+    /**
+     * Update the progressbar with the current progress.
+     */
     private fun showProgress(vararg progress: Int) {
         val progressBar = findViewById<ProgressBar>(R.id.progressbar)
         progressBar.visibility = View.VISIBLE
         progressBar.progress = progress[0]
     }
 
-    // Make the progressbar and text invisible.
+    /**
+     * Make the progressbar and text invisible.
+     */
     private fun setProgressbarInvisible()  {
         val progressBar = findViewById<ProgressBar>(R.id.progressbar)
         progressBar.visibility = View.INVISIBLE
@@ -192,7 +197,9 @@ class DownloadActivity : AppCompatActivity() {
         progressBarText.visibility = View.INVISIBLE
     }
 
-    // Make the text on the progressbar visible.
+    /**
+     * Make the text on the progressbar visible.
+     */
     private fun showProgressText(text: String) {
         val progressBarText = findViewById<TextView>(R.id.progressbarText)
         progressBarText.visibility = View.VISIBLE
@@ -200,8 +207,10 @@ class DownloadActivity : AppCompatActivity() {
         progressBarText.text = progressText
     }
 
-    // Overridden method that cancels a current download if the user restarts the
-    // application during download.
+    /**
+     * Overridden method that cancels a current download if the user restarts the
+     * application during download.
+     */
     override fun onPause() {
         super.onPause()
         downloadId?.let { manager.remove(it) }

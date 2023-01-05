@@ -18,34 +18,37 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Fragment for the weather dialog. Yes, the code is messy :)
+ * Fragment for the weather dialog. Yes, the code is messy, but it works :)
  */
 class WeatherFragment : DialogFragment() {
 
     private lateinit var weatherIcon : Drawable
     private lateinit var temperature: String
     private lateinit var weatherDescription: String
+    private var errorMsg: String? = null
     private lateinit var imageUrl: String
     private lateinit var couldNotFind: String
     private lateinit var badUrl: String
+    private lateinit var noAddressOrCoords: String
     private lateinit var celsius: String
     private lateinit var png: String
 
     /**
      * Function for searching for the weather using coordinates or address.
-     * Displays a progress dialog while fetching and a weather/could not find/error
+     * Displays a progress dialog while fetching and a weather/error/could not find
      * dialog when finished fetching. Since weather changes over time, values are not
      * stored and the function always fetches the weather even if the user searches
      * the same place twice or more times.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun searchWeather(activity: Activity, address: String? = "", longitude: Int? = null, latitude: Int? = null) {
+    fun searchWeather(activity: Activity, address: String, longitude: Int? = null, latitude: Int? = null) {
 
         val progressDialog = ProgressDialog(activity)
 
         // Get strings from the activity, these are used later.
         couldNotFind = activity.resources.getString(R.string.could_not_find)
         badUrl = activity.resources.getString(R.string.bad_url)
+        noAddressOrCoords = activity.resources.getString(R.string.no_address_or_coords)
         imageUrl = activity.resources.getString(R.string.image_url)
         celsius = activity.resources.getString(R.string.celsius)
         png = activity.resources.getString(R.string.png)
@@ -57,57 +60,35 @@ class WeatherFragment : DialogFragment() {
             val preferences = activity.getSharedPreferences("fetch", Context.MODE_PRIVATE)
             val url = preferences.getString("value", "")
 
-            // In first hand, download with coordinates.
-            if (longitude != null && latitude != null) {
-                val completeUrl = "$url?lat=$latitude&lon=$longitude"
-
-                // Launch with timeout or null, catch possible errors.
-                GlobalScope.launch(Dispatchers.Main) {
-                    withContext(Dispatchers.IO) {
-                        withTimeoutOrNull(5000) {
-                            try {
+            GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    withTimeoutOrNull(5000) {
+                        try {
+                            val completeUrl: String
+                            // In first hand, download with coordinates.
+                            if (longitude != null && latitude != null) {
+                                completeUrl = "$url?lat=$latitude&lon=$longitude"
                                 getWeatherData(completeUrl)
-                                // Dismiss the progress dialog, this also triggers displaying the weather dialog.
-                                progressDialog.dismiss()
-                            } catch (e: Exception) {
-                                when(e) {
-                                    is MalformedURLException,
-                                        is FileNotFoundException -> {
-                                        weatherDescription = badUrl
-                                        // Dismiss the progress dialog, this also triggers displaying the error.
-                                        progressDialog.dismiss()
-                                    }
-                                    else -> throw e
-                                }
+                            } else if (address != "") { // Otherwise download with the address.
+                                val town = address.substringAfterLast(" ")
+                                completeUrl = "$url?q=$town"
+                                getWeatherData(completeUrl)
+                            } else {
+                                // This should never happen since the function should
+                                // never be called without both address and coordinates.
+                                errorMsg = noAddressOrCoords
                             }
-                        }
-                    }
-                }
-            } else if (address != "") {
-
-                val town = address?.substringAfterLast(" ")
-
-                // Otherwise download with the address.
-                val completeUrl = "$url?q=$town"
-
-                // Launch with timeout or null, catch possible errors.
-                GlobalScope.launch(Dispatchers.Main) {
-                    withContext(Dispatchers.IO) {
-                        withTimeoutOrNull(5000) {
-                            try {
-                                getWeatherData(completeUrl)
-                                // Dismiss the progress dialog, this also triggers displaying the weather dialog.
-                                progressDialog.dismiss()
-                            } catch (e: Exception) {
-                                when (e) {
-                                    is MalformedURLException,
-                                    is FileNotFoundException -> {
-                                        weatherDescription = badUrl
-                                        // Dismiss the progress dialog, this also triggers displaying the error.
-                                        progressDialog.dismiss()
-                                    }
-                                    else -> throw e
+                            // Dismiss the progress dialog, this also triggers displaying the weather/error dialog.
+                            progressDialog.dismiss()
+                        } catch (e: Exception) {
+                            when(e) {
+                                is MalformedURLException,
+                                is FileNotFoundException -> {
+                                    errorMsg = badUrl
+                                    // Dismiss the progress dialog, this also triggers displaying the error.
+                                    progressDialog.dismiss()
                                 }
+                                else -> throw e
                             }
                         }
                     }
@@ -119,9 +100,9 @@ class WeatherFragment : DialogFragment() {
         val message = activity.getString(R.string.getting_current_weather)
         progressDialog.setMessage(message)
         progressDialog.setCancelable(false)
-        // Set a listener for dismiss so that a weather dialog is shown.
+        // Set a listener for dismiss so that a weather/error dialog is shown.
         progressDialog.setOnDismissListener {
-            showWeatherDialog(activity)
+            showDialogMessage(activity)
         }
         progressDialog.show()
     }
@@ -172,20 +153,19 @@ class WeatherFragment : DialogFragment() {
             if (drawable != null) {
                 weatherIcon = drawable
             }
-        } else { // Else set the description to could not find.
-            weatherDescription = couldNotFind
+        } else { // Else set the error message to could not find.
+            errorMsg = couldNotFind
         }
     }
 
-
     /**
-     * Function for showing the weather dialog in the activity.
+     * Function for showing the weather/error dialog in the activity.
      * https://stackoverflow.com/questions/18601049/adding-positive-negative-button-to-dialogfragments-dialog
      * https://stackoverflow.com/questions/36699987/show-degree-symbol-in-a-textview
      */
-    private fun showWeatherDialog(activity: Activity) {
-        // Check if weather data was found.
-        if (weatherDescription != couldNotFind && weatherDescription != badUrl) {
+    private fun showDialogMessage(activity: Activity) {
+        // Check if there was any errors
+        if (errorMsg.isNullOrBlank()) {
 
             // Inflate the fragment.
             val alertDialog : AlertDialog
@@ -210,9 +190,9 @@ class WeatherFragment : DialogFragment() {
 
             alertDialog = builder.create()
             alertDialog.show()
-        } else { // If it was not found, display a dialog telling it.
+        } else { // Else, display a dialog showing the error.
             AlertDialog.Builder(activity)
-                .setTitle(weatherDescription)
+                .setTitle(errorMsg)
                 .setNegativeButton(R.string.ok
                 ) { dialog, _ -> dialog.dismiss() }
                 .show()

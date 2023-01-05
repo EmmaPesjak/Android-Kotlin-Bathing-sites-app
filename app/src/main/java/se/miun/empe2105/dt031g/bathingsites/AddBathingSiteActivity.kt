@@ -191,18 +191,16 @@ class AddBathingSiteActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     /**
      * Method for setting the default date to today's date.
+     * https://stackoverflow.com/questions/8654990/how-can-i-get-current-date-in-android
+     * https://stackoverflow.com/questions/54840729/error29-34-type-mismatch-inferred-type-is-string-but-editable-was-expecte
      */
     private fun setDate() {
-        // https://stackoverflow.com/questions/8654990/how-can-i-get-current-date-in-android
-        // https://stackoverflow.com/questions/54840729/error29-34-type-mismatch-inferred-type-is-string-but-editable-was-expecte
-
         val date = Calendar.getInstance().time
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())  //notera att detta blir telefonens tidszon
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val formattedDate = dateFormat.format(date)
         val dateTemp = findViewById<EditText>(R.id.date_water)
         fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
