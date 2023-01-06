@@ -3,7 +3,6 @@ package se.miun.empe2105.dt031g.bathingsites
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
-import android.content.Context
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import android.widget.TextView
@@ -29,7 +28,6 @@ class WeatherFragment : DialogFragment() {
     private lateinit var imageUrl: String
     private lateinit var couldNotFind: String
     private lateinit var badUrl: String
-    private lateinit var noAddressOrCoords: String
     private lateinit var celsius: String
     private lateinit var png: String
 
@@ -41,14 +39,13 @@ class WeatherFragment : DialogFragment() {
      * the same place twice or more times.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun searchWeather(activity: Activity, address: String, longitude: Int? = null, latitude: Int? = null) {
+    fun searchWeather(activity: Activity, completeUrlString: String) {
 
         val progressDialog = ProgressDialog(activity)
 
         // Get strings from the activity, these are used later.
         couldNotFind = activity.resources.getString(R.string.could_not_find)
         badUrl = activity.resources.getString(R.string.bad_url)
-        noAddressOrCoords = activity.resources.getString(R.string.no_address_or_coords)
         imageUrl = activity.resources.getString(R.string.image_url)
         celsius = activity.resources.getString(R.string.celsius)
         png = activity.resources.getString(R.string.png)
@@ -56,28 +53,12 @@ class WeatherFragment : DialogFragment() {
         // Fetch the data with an executor service. https://www.baeldung.com/kotlin/create-thread-pool
         val service: ExecutorService = Executors.newSingleThreadExecutor()
         service.submit {
-            // Get the url from settings.
-            val preferences = activity.getSharedPreferences("fetch", Context.MODE_PRIVATE)
-            val url = preferences.getString("value", "")
 
             GlobalScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
                     withTimeoutOrNull(5000) {
                         try {
-                            val completeUrl: String
-                            // In first hand, download with coordinates.
-                            if (longitude != null && latitude != null) {
-                                completeUrl = "$url?lat=$latitude&lon=$longitude"
-                                getWeatherData(completeUrl)
-                            } else if (address != "") { // Otherwise download with the address.
-                                val town = address.substringAfterLast(" ")
-                                completeUrl = "$url?q=$town"
-                                getWeatherData(completeUrl)
-                            } else {
-                                // This should never happen since the function should
-                                // never be called without both address and coordinates.
-                                errorMsg = noAddressOrCoords
-                            }
+                            getWeatherData(completeUrlString)
                             // Dismiss the progress dialog, this also triggers displaying the weather/error dialog.
                             progressDialog.dismiss()
                         } catch (e: Exception) {
@@ -192,7 +173,7 @@ class WeatherFragment : DialogFragment() {
             alertDialog.show()
         } else { // Else, display a dialog showing the error.
             AlertDialog.Builder(activity)
-                .setTitle(errorMsg)
+                .setMessage(errorMsg)
                 .setNegativeButton(R.string.ok
                 ) { dialog, _ -> dialog.dismiss() }
                 .show()

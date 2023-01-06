@@ -1,5 +1,6 @@
 package se.miun.empe2105.dt031g.bathingsites
 
+import android.content.Context
 import android.content.Intent
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
@@ -51,32 +52,46 @@ class AddBathingSiteActivity : AppCompatActivity() {
                 saveSite()
             }
             R.id.add_show_weather -> {
-
-                val address = findViewById<EditText>(R.id.address)
-                val longitude = findViewById<EditText>(R.id.longitude)
-                val latitude = findViewById<EditText>(R.id.latitude)
-
-                val dialog = WeatherFragment()
-
-                // Check if the user has inputted coordinates and/or address to search with.
-                // Create a dialog and remove unnecessary errors if so.
-                if (latitude.text.isNotEmpty() && longitude.text.isNotEmpty()) {
-                    dialog.searchWeather(this, "",
-                        Integer.parseInt(longitude.text.toString()),
-                        Integer.parseInt(latitude.text.toString()))
-                    address.error = null
-                } else if (address.text.isNotEmpty()) {
-                    dialog.searchWeather(this, address.text.toString())
-                    longitude.error = null
-                    latitude.error = null
-                } else { // Else show errors.
-                    address.error = getString(R.string.required_place)
-                    longitude.error = getString(R.string.required_place)
-                    latitude.error = getString(R.string.required_place)
-                }
+                showWeather()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    /**
+     * Method for creating the weather fragment to be displayed when searching for weather.
+     * Creates the url to search with by getting the php-site from the settings and adding
+     * either address(town) or coordinates.
+     */
+    private fun showWeather() {
+        val address = findViewById<EditText>(R.id.address)
+        val longitude = findViewById<EditText>(R.id.longitude)
+        val latitude = findViewById<EditText>(R.id.latitude)
+
+        val dialog = WeatherFragment()
+
+        // Get the url from settings.
+        val preferences = getSharedPreferences("fetch", Context.MODE_PRIVATE)
+        val url = preferences.getString("value", "")
+
+        // Check if the user has inputted coordinates and/or address to search with.
+        // Create a dialog and remove unnecessary errors if so.
+        // In first hand, search weather with coordinates.
+        if (latitude.text.isNotEmpty() && longitude.text.isNotEmpty()) {
+            val completeUrl = "$url?lat=${Integer.parseInt(latitude.text.toString())}&lon=${Integer.parseInt(longitude.text.toString())}"
+            dialog.searchWeather(this, completeUrl)
+            address.error = null
+        } else if (address.text.isNotEmpty()) {
+            val town = address.text.toString().substringAfterLast(" ") // Town to search should be written last.
+            val completeUrl = "$url?q=$town"
+            dialog.searchWeather(this, completeUrl)
+            longitude.error = null
+            latitude.error = null
+        } else { // Else show errors.
+            address.error = getString(R.string.required_place)
+            longitude.error = getString(R.string.required_place)
+            latitude.error = getString(R.string.required_place)
+        }
     }
 
     /**
