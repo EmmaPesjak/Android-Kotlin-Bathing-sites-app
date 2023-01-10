@@ -1,12 +1,16 @@
 package se.miun.empe2105.dt031g.bathingsites
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -54,6 +58,8 @@ class DownloadActivity : AppCompatActivity() {
                 withContext(Dispatchers.IO) {
                     GlobalScope.launch {
 
+
+
                         // Download with the help of a download manager.
                         val fileEnding: String =
                             url.substringAfterLast("/")  // ex bathingsites1.csv
@@ -99,79 +105,98 @@ class DownloadActivity : AppCompatActivity() {
                             delay(100) // Tiny delay so the loop doesn't go crazy.
                         }
 
-                        // Download complete. Now change the text of the progressbar.
-                        val progressBarText = findViewById<TextView>(R.id.progressbarText)
-                        progressBarText.text = getString(R.string.adding_to_db)
 
-                        // Read from input stream.
-                        val pathName = "" + Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS
-                        ) + "/" + dirName
-                        val downloadedFile = File(pathName)
-                        val fileInputStream = FileInputStream(downloadedFile)
-                        val inputStreamReader = InputStreamReader(fileInputStream)
-                        val bufferedReader = BufferedReader(inputStreamReader)
+                        try{
+                            // Download complete. Now change the text of the progressbar.
+                            val progressBarText = findViewById<TextView>(R.id.progressbarText)
+                            progressBarText.text = getString(R.string.adding_to_db)
 
-                        var text: String?
-                        while (run {
-                                text = bufferedReader.readLine()
-                                text
-                            } != null) {
+                            // Read from input stream.
+                            val pathName = "" + Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS
+                            ) + "/" + dirName
+                            val downloadedFile = File(pathName)
+                            val fileInputStream = FileInputStream(downloadedFile)
+                            val inputStreamReader = InputStreamReader(fileInputStream)
+                            val bufferedReader = BufferedReader(inputStreamReader)
 
-                            // Get values.
-                            val coordinates = text?.substringBefore(",\"\"")
-                                ?.substringAfterLast('"') //ex 15.6746,62.1556
-                            val longitude = coordinates?.substringBefore(",") // ex 15.6746
-                            val latitude = coordinates?.substringAfter(",")     // ex 62.1556
-                            // Convert to floats.
-                            val longitudeFloat = longitude?.toFloat()
-                            val latitudeFloat = latitude?.toFloat()
-                            // Check if the coordinates are unique.
-                            val coordsExists: Boolean =
-                                appDatabase.bathingSiteDao()
-                                    .coordsExists(longitudeFloat, latitudeFloat)
+                            var text: String?
+                            while (run {
+                                    text = bufferedReader.readLine()
+                                    text
+                                } != null) {
 
-                            // Only add the site if the coordinates are unique.
-                            if (!coordsExists) {
+                                // Get values.
+                                val coordinates = text?.substringBefore(",\"\"")
+                                    ?.substringAfterLast('"') //ex 15.6746,62.1556
+                                val longitude = coordinates?.substringBefore(",") // ex 15.6746
+                                val latitude = coordinates?.substringAfter(",")     // ex 62.1556
+                                // Convert to floats.
+                                val longitudeFloat = longitude?.toFloat()
+                                val latitudeFloat = latitude?.toFloat()
+                                // Check if the coordinates are unique.
+                                val coordsExists: Boolean =
+                                    appDatabase.bathingSiteDao()
+                                        .coordsExists(longitudeFloat, latitudeFloat)
 
-                                // Get the rest of the values.
-                                val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
-                                    ?.substringAfterLast("\"\"")  // ex Viken, Västersjön, Ramsjö
+                                // Only add the site if the coordinates are unique.
+                                if (!coordsExists) {
 
-                                val name = nameAndPossiblyAddress?.substringBefore(",") // ex Viken
+                                    // Get the rest of the values.
+                                    val nameAndPossiblyAddress = text?.substringBefore("\"\"\"")
+                                        ?.substringAfterLast("\"\"")  // ex Viken, Västersjön, Ramsjö
 
-                                // Check if there is an address, address exists if the string contains a comma.
-                                val address: String = if (nameAndPossiblyAddress?.contains(",")
-                                    == true
-                                ) {
-                                    nameAndPossiblyAddress.substringAfter(",")  // ex Västersjön, Ramsjö
-                                } else {
-                                    ""
+                                    val name = nameAndPossiblyAddress?.substringBefore(",") // ex Viken
+
+                                    // Check if there is an address, address exists if the string contains a comma.
+                                    val address: String = if (nameAndPossiblyAddress?.contains(",")
+                                        == true
+                                    ) {
+                                        nameAndPossiblyAddress.substringAfter(",")  // ex Västersjön, Ramsjö
+                                    } else {
+                                        ""
+                                    }
+
+                                    // Create the site.
+                                    val bathingSite = BathingSite(
+                                        null, name, null, address,
+                                        longitudeFloat, latitudeFloat,
+                                        null, null, null
+                                    )
+                                    // Add to the database.
+                                    appDatabase.bathingSiteDao().insert(bathingSite)
+                                    // Increase the count of bathing sites.
+                                    BathingSitesView.count += 1
                                 }
-
-                                // Create the site.
-                                val bathingSite = BathingSite(
-                                    null, name, null, address,
-                                    longitudeFloat, latitudeFloat,
-                                    null, null, null
-                                )
-                                // Add to the database.
-                                appDatabase.bathingSiteDao().insert(bathingSite)
-                                // Increase the count of bathing sites.
-                                BathingSitesView.count += 1
                             }
+                            // Close the input stream.
+                            withContext(Dispatchers.IO) {
+                                fileInputStream.close()
+                            }
+                            // Delete the downloaded file.
+                            downloadedFile.delete()
+                            // Set the progressbar invisible.
+                            setProgressbarInvisible()
+                            // Set the download ID to null since the download is complete and it
+                            // does not need to be stored anymore.
+                            downloadId = null
+                        } catch (e: FileNotFoundException) {
+                            Dispatchers.Main {
+                                AlertDialog.Builder(this@DownloadActivity)
+                                    .setMessage("Something went wrong, try again")
+                                    .setNegativeButton(R.string.ok
+                                    ) { dialog, _ -> dialog.dismiss() }
+                                    .show()
+                            }
+                            println(e)
+                            val pathName = "" + Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_DOWNLOADS
+                            ) + "/" + dirName
+                            val downloadedFile = File(pathName)
+                            downloadedFile.delete()
+                            setProgressbarInvisible()
+
                         }
-                        // Close the input stream.
-                        withContext(Dispatchers.IO) {
-                            fileInputStream.close()
-                        }
-                        // Delete the downloaded file.
-                        downloadedFile.delete()
-                        // Set the progressbar invisible.
-                        setProgressbarInvisible()
-                        // Set the download ID to null since the download is complete and it
-                        // does not need to be stored anymore.
-                        downloadId = null
                     }
                 }
             }
@@ -214,5 +239,25 @@ class DownloadActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         downloadId?.let { manager.remove(it) }
+    }
+
+    /**
+     * Inflate the overflow menu.
+     */
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.settings_menu, menu)
+        return true
+    }
+
+    /**
+     * Set option responses.
+     */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }

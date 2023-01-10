@@ -3,6 +3,6 @@
 
     <item
         android:title="@string/settings"
-        android:id="@+id/maps_settings"
+        android:id="@+id/menu_settings"
         />
 </menu>
