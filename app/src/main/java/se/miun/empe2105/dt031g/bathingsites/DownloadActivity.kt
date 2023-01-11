@@ -19,9 +19,8 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import java.io.*
 
-
 /**
- * Download activity class. Downloads bathing sites from a php-site and adds
+ * Download activity class. Downloads bathing sites from a webview and adds
  * them to the database.
  */
 class DownloadActivity : AppCompatActivity() {
@@ -39,7 +38,7 @@ class DownloadActivity : AppCompatActivity() {
         appDatabase = AppDatabase.getDatabase(this)
         dbProgressDialog = ProgressDialog(this)
 
-        //set up the webView.
+        // Set up the webView.
         val webView = findViewById<WebView>(R.id.webView)
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?
@@ -75,12 +74,13 @@ class DownloadActivity : AppCompatActivity() {
                         downloadId = manager.enqueue(request)
 
                         // Create a broadcast receiver that dismisses the progress dialog.
+                        // https://stackoverflow.com/questions/21477493/android-download-manager-completed
                         val onComplete: BroadcastReceiver = object : BroadcastReceiver() {
                             override fun onReceive(ctxt: Context, intent: Intent) {
                                 downloadProgressDialog.dismiss()
                             }
                         }
-                        registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                        registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
                         }
                     }
                 }
@@ -179,16 +179,13 @@ class DownloadActivity : AppCompatActivity() {
                 withContext(Dispatchers.IO) {
                     fileInputStream.close()
                 }
-
                 // Set the download ID to null since the download is complete and it
                 // does not need to be stored anymore.
                 downloadId = null
-
                 // Delete the downloaded file.
                 downloadedFile.delete()
-
+                // Dissmiss the dialog.
                 dbProgressDialog.dismiss()
-
             }
         }}
 

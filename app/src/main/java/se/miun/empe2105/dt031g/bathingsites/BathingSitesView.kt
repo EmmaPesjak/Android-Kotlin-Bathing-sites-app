@@ -21,8 +21,6 @@ class BathingSitesView(
 
     private lateinit var appDatabase: AppDatabase
 
-    // https://stackoverflow.com/questions/57788508/static-variables-in-kotlin
-    // https://stackoverflow.com/questions/24464663/why-is-my-counter-being-reset-each-time-after-call-tooncreate/24464738#24464738
     // Static counter variable for number of bathing sites.
     companion object {
         var count = 0

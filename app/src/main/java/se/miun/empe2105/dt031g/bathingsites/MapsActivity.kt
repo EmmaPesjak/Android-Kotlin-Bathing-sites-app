@@ -50,7 +50,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -203,7 +202,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 }
 
                 // Only display bathing sites within the set radius.
-                if (distance[0] < radius) {
+                if (distance[0] <= radius) {
 
                     // Create the text with info about the bathing site.
                     // Round the distance and convert to kilometers.

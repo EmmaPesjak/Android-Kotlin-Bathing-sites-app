@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onStart() {
         super.onStart()
-        val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_hej)
+        val bathingView = findViewById<BathingSitesView>(R.id.bathing_site_view)
         bathingView.setOnClickListener {
             startActivity(Intent(this, ShowBathingSitesActivity::class.java))
         }

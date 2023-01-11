@@ -7,7 +7,7 @@
     tools:context=".BathingSitesFragment">
 
     <se.miun.empe2105.dt031g.bathingsites.BathingSitesView
-        android:id="@+id/bathing_site_hej"
+        android:id="@+id/bathing_site_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"

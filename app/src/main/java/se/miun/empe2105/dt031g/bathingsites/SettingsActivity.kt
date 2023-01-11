@@ -74,7 +74,7 @@ class SettingsActivity : AppCompatActivity() {
                 true
             }
             // Make sure only numbers can be entered for the maps radius.
-            //https://stackoverflow.com/questions/53446825/edittextpreference-not-showing-numeric-keyboard-after-migrating-project-to-andro
+            // https://stackoverflow.com/questions/53446825/edittextpreference-not-showing-numeric-keyboard-after-migrating-project-to-andro
             mapsPref?.setOnBindEditTextListener { editText ->
                 editText.inputType = InputType.TYPE_CLASS_NUMBER
             }

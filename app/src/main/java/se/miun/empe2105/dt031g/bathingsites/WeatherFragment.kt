@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Fragment for the weather dialog. Yes, the code is messy, but it works :)
+ * Fragment for the weather dialog.
  */
 class WeatherFragment : DialogFragment() {
 
@@ -89,7 +89,7 @@ class WeatherFragment : DialogFragment() {
     }
 
     /**
-     * Function for parsing to JSON. Returns a [JSONObject].
+     * Function for parsing to JSON.
      * https://stackoverflow.com/questions/44883593/how-to-read-json-from-url-using-kotlin-android
      */
     private fun parseResponse(jsonString: String): JSONObject? {
